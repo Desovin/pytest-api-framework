@@ -1,0 +1,174 @@
+name: API Automation Test
+
+on:
+  # push 到 main/master 分支时触发
+  push:
+    branches: [main, master]
+  # pull_request 到 main/master 分支时触发
+  pull_request:
+    branches: [main, master]
+  # 支持手动触发（方便调试）
+  workflow_dispatch:
+
+# GitHub Pages 部署需要的权限
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 并发控制：同一个 PR/分支只跑一个，避免资源浪费
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ═══════════════════════════════════════════════════
+  # Job 1: 运行测试并生成报告
+  # ═══════════════════════════════════════════════════
+  test:
+    name: Run API Tests
+    runs-on: ubuntu-latest
+
+    services:
+      # CI 中启动 Redis 服务（模块 10/13 用到）
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      # CI 中启动 MySQL 服务（模块 10 数据库断言用到）
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: 123456
+          MYSQL_DATABASE: test_framework
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -uroot -p123456"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      # 1. 检出代码
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. 设置 Python 环境
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # 3. 缓存 pip 依赖，加速后续运行
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # 4. 安装项目依赖
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # 5. 安装 Allure CLI（Ubuntu 下没有 scoop，手动下载）
+      - name: Install Allure CLI
+        run: |
+          ALLURE_VERSION=2.29.0
+          wget -q https://github.com/allure-framework/allure2/releases/download/${ALLURE_VERSION}/allure-${ALLURE_VERSION}.tgz
+          tar -xzf allure-${ALLURE_VERSION}.tgz -C /tmp
+          sudo ln -s /tmp/allure-${ALLURE_VERSION}/bin/allure /usr/local/bin/allure
+          allure --version
+
+      # 6. 启动 Mock Server（后台运行）
+      - name: Start Mock Server
+        run: |
+          python mock_server/app.py &
+          MOCK_PID=$!
+          echo "Mock Server PID: $MOCK_PID"
+          # 等待 Mock Server 就绪，最多 30 秒
+          for i in {1..30}; do
+            if curl -s http://127.0.0.1:8787/index >/dev/null; then
+              echo "Mock Server is ready"
+              break
+            fi
+            sleep 1
+          done
+          curl -s http://127.0.0.1:8787/index || exit 1
+
+      # 7. 运行接口自动化测试
+      #    钉钉通知由 conftest.py 的 pytest_terminal_summary hook 自动发送，
+      #    所以这里只需要注入 DINGTALK_* 环境变量。
+      - name: Run pytest
+        env:
+          # CI 环境下用 GitHub Secrets 覆盖 config.ini 的钉钉配置
+          DINGTALK_ENABLED: 'true'
+          DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
+          DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
+          DINGTALK_ONLY_ON_FAILURE: 'false'
+          # 报告链接，钉钉通知里会带上这个 URL
+          REPORT_URL: ${{ github.event.repository.html_url }}/actions/runs/${{ github.run_id }}
+        run: |
+          pytest testcase/ -v \
+            --alluredir=./report/temp \
+            --clean-alluredir \
+            --reruns 1 \
+            --reruns-delay 0.5 \
+            --junitxml=./report/results.xml
+
+      # 8. 生成 Allure HTML 报告
+      - name: Generate Allure Report
+        if: always()
+        run: |
+          allure generate ./report/temp -o ./report/allureReport --clean
+
+      # 9. 上传 Allure 报告作为 artifact（方便下载查看）
+      - name: Upload Allure Report Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report-${{ github.run_id }}
+          path: ./report/allureReport
+          retention-days: 7
+
+      # 10. 上传 JUnit XML 结果
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ github.run_id }}
+          path: ./report/results.xml
+          retention-days: 7
+
+      # 11. 上传静态页面到 GitHub Pages（供 deploy job 使用）
+      - name: Upload Pages Artifact
+        if: always()
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./report/allureReport
+
+  # ═══════════════════════════════════════════════════
+  # Job 2: 部署 Allure 报告到 GitHub Pages
+  # ═══════════════════════════════════════════════════
+  deploy:
+    name: Deploy Allure Report to GitHub Pages
+    needs: test
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

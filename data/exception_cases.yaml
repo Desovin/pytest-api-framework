@@ -1,0 +1,86 @@
+# 异常场景测试数据（模块 12）
+# 覆盖：服务端异常、网络超时、空响应、参数异常、业务异常
+
+- baseInfo:
+    api_name: 服务端500异常
+    url: /test/error-500
+    method: GET
+    header:
+      Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+  testCase:
+    - case_name: 验证500状态码和错误信息
+      validation:
+        - contains: { 'status_code': 500 }
+        - contains: { 'msg': '服务器内部错误' }
+
+- baseInfo:
+    api_name: 接口超时
+    url: /test/timeout
+    method: GET
+    header:
+      Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+  testCase:
+    - case_name: 验证请求超时
+      # timeout: 请求超时时间（秒），这里设 1 秒，Mock Server 会 sleep 5 秒
+      timeout: 1
+      validation:
+        - timeout: true
+
+- baseInfo:
+    api_name: 空响应体
+    url: /test/empty
+    method: GET
+    header:
+      Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+  testCase:
+    - case_name: 验证空响应体返回200
+      validation:
+        - contains: { 'status_code': 200 }
+
+- baseInfo:
+    api_name: 缺少必填参数-token
+    url: /dar/user/addUser
+    method: POST
+    header:
+      Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+  testCase:
+    - case_name: 新增用户缺少token
+      data:
+        username: testadduser
+        password: tset6789890
+        role_id: 123456789
+        dates: 2023-12-31
+        phone: 13800000000
+        token:
+      validation:
+        - contains: { 'msg': '新增失败' }
+        - contains: { 'msg_code': 9001 }
+
+- baseInfo:
+    api_name: 商品库存不足
+    url: /coupApply/cms/shoppingInventory
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 库存不足返回status=1
+      json:
+        goodsId: '18382788819'
+        count: 10
+      validation:
+        - contains: { 'status': '1' }
+        - contains: { 'error': '商品库存不足' }
+
+- baseInfo:
+    api_name: 商品不存在
+    url: /coupApply/cms/productDetail
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 查询不存在的商品
+      json:
+        pro_id: '99999999999'
+      validation:
+        - contains: { 'error_code': '4000' }
+        - contains: { 'error': '不存在该商品' }

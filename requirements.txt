@@ -1,0 +1,32 @@
+# 接口自动化测试框架依赖（模块 14 CI/CD 使用）
+
+# 测试框架
+pytest>=8.3.0
+pytest-rerunfailures>=14.0
+pytest-xdist>=3.6.0
+
+# 报告
+allure-pytest>=2.13.0
+
+# HTTP 客户端
+requests>=2.32.0
+
+# YAML 解析
+PyYAML>=6.0
+
+# JSON 路径提取
+jsonpath>=0.82.0
+
+# Mock Server
+Flask>=3.0.0
+
+# 数据库
+PyMySQL>=1.1.0
+redis>=5.0.0
+
+# JSON Schema 校验（可选，框架扩展用）
+jsonschema>=4.0.0
+
+# Excel 读取（可选）
+xlrd>=2.0.0
+openpyxl>=3.1.0

@@ -1,0 +1,12 @@
+[32mINFO    [0m conftest:conftest.py:41 ------------- 用例开始 -------------
+[32mINFO    [0m testcase.conftest:conftest.py:19 ------------- 用例开始 -------------
+[32mINFO    [0m testcase.conftest:conftest.py:21 ------------- 用例结束 -------------
+[32mINFO    [0m conftest:conftest.py:43 ------------- 用例结束 -------------
+[35mDEBUG   [0m common.connection:connection.py:199 Redis 连接成功: localhost:6379
+[32mINFO    [0m testcase.conftest:conftest.py:89 Redis 测试数据已清理
+[35mDEBUG   [0m common.connection:connection.py:209 Redis 连接已关闭
+[35mDEBUG   [0m common.connection:connection.py:62 MySQL 连接成功: localhost:3306/test_framework
+[35mDEBUG   [0m common.connection:connection.py:97 执行成功: DELETE FROM sys_user WHERE username LIKE 'test_%'
+[35mDEBUG   [0m common.connection:connection.py:75 MySQL 连接已关闭
+[32mINFO    [0m testcase.conftest:conftest.py:71 测试数据已清理
+[32mINFO    [0m conftest:conftest.py:35 ========== 测试会话结束 ==========

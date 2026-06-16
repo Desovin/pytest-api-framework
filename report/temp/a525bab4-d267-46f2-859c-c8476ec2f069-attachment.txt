@@ -1,0 +1,21 @@
+[32mINFO    [0m conftest:conftest.py:41 ------------- 用例开始 -------------
+[32mINFO    [0m testcase.conftest:conftest.py:19 ------------- 用例开始 -------------
+[32mINFO    [0m common.send_request:send_request.py:65 POST http://127.0.0.1:8787/dar/user/login
+[35mDEBUG   [0m urllib3.connectionpool:connectionpool.py:241 Starting new HTTP connection (1): 127.0.0.1:8787
+[35mDEBUG   [0m urllib3.connectionpool:connectionpool.py:544 http://127.0.0.1:8787 "POST /dar/user/login HTTP/1.1" 200 195
+[32mINFO    [0m common.send_request:send_request.py:98 POST http://127.0.0.1:8787/dar/user/login → 200, 0.028s
+[35mDEBUG   [0m common.send_request:send_request.py:99 响应体: {
+  "error_code": null,
+  "msg": "\u767b\u5f55\u6210\u529f",
+  "msg_code": 200,
+  "orgId": "6140913758128971280",
+  "token": "A0fF990cf6913D54EAD3B876C5eeB6",
+  "userId": "2470749778151992028"
+}
+
+[35mDEBUG   [0m common.connection:connection.py:199 Redis 连接成功: localhost:6379
+[35mDEBUG   [0m common.connection:connection.py:209 Redis 连接已关闭
+[32mINFO    [0m common.assertions:assertions.py:315 redis 断言成功 | key=token:test01 存在
+[32mINFO    [0m common.assertions:assertions.py:77 断言通过
+[32mINFO    [0m testcase.conftest:conftest.py:21 ------------- 用例结束 -------------
+[32mINFO    [0m conftest:conftest.py:43 ------------- 用例结束 -------------

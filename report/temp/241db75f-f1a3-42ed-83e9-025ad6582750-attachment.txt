@@ -1,0 +1,5 @@
+[32mINFO    [0m conftest:conftest.py:41 ------------- 用例开始 -------------
+[32mINFO    [0m testcase.conftest:conftest.py:19 ------------- 用例开始 -------------
+[32mINFO    [0m test_logger:test_logger.py:17 这条日志应该同时出现在控制台和 logs/test.log 里
+[32mINFO    [0m testcase.conftest:conftest.py:21 ------------- 用例结束 -------------
+[32mINFO    [0m conftest:conftest.py:43 ------------- 用例结束 -------------

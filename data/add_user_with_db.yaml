@@ -1,0 +1,23 @@
+# 新增用户 + 数据库断言（模块 10）
+# 验证：接口返回成功 AND 数据确实在 MySQL 里
+
+- baseInfo:
+    api_name: 新增用户(含数据库验证)
+    url: /dar/user/addUser
+    method: POST
+    header:
+      Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+  testCase:
+    - case_name: 正常新增-接口+数据库双重验证
+      data:
+        username: test_db_user
+        password: db_pass_123
+        role_id: 123456789
+        dates: 2023-12-31
+        phone: 13800000000
+        token: ${get_extract_data(token)}
+      validation:
+        - contains: { 'msg': '新增成功' }
+        # db 断言：查 MySQL 确认数据落库
+        # SQL 中用单引号包裹字符串值，PyMySQL 会正确处理
+        - db: { 'sql': "SELECT * FROM sys_user WHERE username='test_db_user'" }

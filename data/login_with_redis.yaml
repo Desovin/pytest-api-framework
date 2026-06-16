@@ -1,0 +1,19 @@
+# 登录 + Redis 缓存验证（模块 10）
+# 验证：登录成功 AND token 写入 Redis 缓存
+
+- baseInfo:
+    api_name: 用户登录(含Redis验证)
+    url: /dar/user/login
+    method: POST
+    header:
+      Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+  testCase:
+    - case_name: 登录成功-接口+Redis缓存双重验证
+      data:
+        user_name: test01
+        passwd: admin123
+      validation:
+        - contains: { 'msg': '登录成功' }
+        # redis 断言：确认 token:test01 这个 key 在 Redis 中存在
+        # Mock Server 登录成功时自动写入 Redis，1 小时过期
+        - redis: { 'key': 'token:test01', 'exists': true }

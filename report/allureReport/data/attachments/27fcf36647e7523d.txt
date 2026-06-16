@@ -1,0 +1,32 @@
+2026-06-16 22:13:28 | INFO     | conftest:33 | ========== 测试会话开始 ==========
+2026-06-16 22:13:28 | DEBUG    | common.connection:62 | MySQL 连接成功: localhost:3306/test_framework
+2026-06-16 22:13:28 | DEBUG    | common.connection:97 | 执行成功: 
+        CREATE TABLE IF NOT EXISTS sys_user (
+            id INT AUTO_INCREMENT
+2026-06-16 22:13:28 | DEBUG    | common.connection:75 | MySQL 连接已关闭
+2026-06-16 22:13:28 | INFO     | testcase.conftest:65 | sys_user 表已就绪
+2026-06-16 22:13:28 | INFO     | testcase.conftest:30 | 执行 session 级登录...
+2026-06-16 22:13:28 | INFO     | common.send_request:65 | POST http://127.0.0.1:8787/dar/user/login
+2026-06-16 22:13:28 | INFO     | common.send_request:98 | POST http://127.0.0.1:8787/dar/user/login → 200, 0.003s
+2026-06-16 22:13:28 | DEBUG    | common.send_request:99 | 响应体: {
+  "error_code": null,
+  "msg": "\u767b\u5f55\u6210\u529f",
+  "msg_code": 200,
+  "orgId": "6140913758128971280",
+  "token": "A0fF990cf6913D54EAD3B876C5eeB6",
+  "userId": "2470749778151992028"
+}
+
+2026-06-16 22:13:28 | INFO     | base.apiutil:282 | 提取字段: token = A0fF990cf6913D54EAD3B876C5eeB6
+2026-06-16 22:13:28 | INFO     | common.assertions:77 | 断言通过
+2026-06-16 22:13:28 | INFO     | conftest:41 | ------------- 用例开始 -------------
+2026-06-16 22:13:28 | INFO     | testcase.conftest:19 | ------------- 用例开始 -------------
+2026-06-16 22:13:28 | INFO     | common.send_request:65 | GET http://127.0.0.1:8787/test/error-500
+2026-06-16 22:13:28 | INFO     | common.send_request:98 | GET http://127.0.0.1:8787/test/error-500 → 500, 0.001s
+2026-06-16 22:13:28 | DEBUG    | common.send_request:99 | 响应体: {
+  "msg": "\u670d\u52a1\u5668\u5185\u90e8\u9519\u8bef"
+}
+
+2026-06-16 22:13:28 | INFO     | common.assertions:77 | 断言通过
+2026-06-16 22:13:28 | INFO     | testcase.conftest:21 | ------------- 用例结束 -------------
+2026-06-16 22:13:28 | INFO     | conftest:43 | ------------- 用例结束 -------------

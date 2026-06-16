@@ -1,0 +1,259 @@
+INFO     conftest:conftest.py:33 ========== 测试会话开始 ==========
+DEBUG    common.connection:connection.py:62 MySQL 连接成功: localhost:3306/test_framework
+DEBUG    common.connection:connection.py:97 执行成功: 
+        CREATE TABLE IF NOT EXISTS sys_user (
+            id INT AUTO_INCREMENT
+DEBUG    common.connection:connection.py:75 MySQL 连接已关闭
+INFO     testcase.conftest:conftest.py:65 sys_user 表已就绪
+INFO     testcase.conftest:conftest.py:30 执行 session 级登录...
+INFO     common.send_request:send_request.py:65 POST http://127.0.0.1:8787/dar/user/login
+DEBUG    urllib3.connectionpool:connectionpool.py:241 Starting new HTTP connection (1): 127.0.0.1:8787
+DEBUG    urllib3.connectionpool:connectionpool.py:544 http://127.0.0.1:8787 "POST /dar/user/login HTTP/1.1" 200 195
+INFO     common.send_request:send_request.py:98 POST http://127.0.0.1:8787/dar/user/login → 200, 0.003s
+DEBUG    common.send_request:send_request.py:99 响应体: {
+  "error_code": null,
+  "msg": "\u767b\u5f55\u6210\u529f",
+  "msg_code": 200,
+  "orgId": "6140913758128971280",
+  "token": "A0fF990cf6913D54EAD3B876C5eeB6",
+  "userId": "2470749778151992028"
+}
+
+INFO     base.apiutil:apiutil.py:282 提取字段: token = A0fF990cf6913D54EAD3B876C5eeB6
+INFO     common.assertions:assertions.py:77 断言通过
+INFO     conftest:conftest.py:41 ------------- 用例开始 -------------
+INFO     testcase.conftest:conftest.py:19 ------------- 用例开始 -------------
+INFO     common.send_request:send_request.py:65 GET http://127.0.0.1:8787/test/error-500
+DEBUG    urllib3.connectionpool:connectionpool.py:241 Starting new HTTP connection (1): 127.0.0.1:8787
+DEBUG    urllib3.connectionpool:connectionpool.py:544 http://127.0.0.1:8787 "GET /test/error-500 HTTP/1.1" 500 58
+INFO     common.send_request:send_request.py:98 GET http://127.0.0.1:8787/test/error-500 → 500, 0.001s
+DEBUG    common.send_request:send_request.py:99 响应体: {
+  "msg": "\u670d\u52a1\u5668\u5185\u90e8\u9519\u8bef"
+}
+
+INFO     common.assertions:assertions.py:77 断言通过
+INFO     testcase.conftest:conftest.py:21 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:43 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:41 ------------- 用例开始 -------------
+INFO     testcase.conftest:conftest.py:19 ------------- 用例开始 -------------
+INFO     common.send_request:send_request.py:65 GET http://127.0.0.1:8787/test/timeout
+DEBUG    urllib3.connectionpool:connectionpool.py:241 Starting new HTTP connection (1): 127.0.0.1:8787
+ERROR    common.send_request:send_request.py:108 GET http://127.0.0.1:8787/test/timeout 请求异常: HTTPConnectionPool(host='127.0.0.1', port=8787): Read timed out. (read timeout=1)
+INFO     base.apiutil:apiutil.py:123 接口超时 请求超时（符合预期）
+INFO     common.assertions:assertions.py:232 timeout 断言通过 | 请求按预期超时
+INFO     common.assertions:assertions.py:77 断言通过
+INFO     testcase.conftest:conftest.py:21 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:43 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:41 ------------- 用例开始 -------------
+INFO     testcase.conftest:conftest.py:19 ------------- 用例开始 -------------
+INFO     common.send_request:send_request.py:65 GET http://127.0.0.1:8787/test/empty
+DEBUG    urllib3.connectionpool:connectionpool.py:241 Starting new HTTP connection (1): 127.0.0.1:8787
+DEBUG    urllib3.connectionpool:connectionpool.py:544 http://127.0.0.1:8787 "GET /test/empty HTTP/1.1" 200 0
+INFO     common.send_request:send_request.py:98 GET http://127.0.0.1:8787/test/empty → 200, 0.021s
+DEBUG    common.send_request:send_request.py:99 响应体: 
+INFO     common.assertions:assertions.py:77 断言通过
+INFO     testcase.conftest:conftest.py:21 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:43 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:41 ------------- 用例开始 -------------
+INFO     testcase.conftest:conftest.py:19 ------------- 用例开始 -------------
+INFO     common.send_request:send_request.py:65 POST http://127.0.0.1:8787/dar/user/addUser
+DEBUG    urllib3.connectionpool:connectionpool.py:241 Starting new HTTP connection (1): 127.0.0.1:8787
+DEBUG    urllib3.connectionpool:connectionpool.py:544 http://127.0.0.1:8787 "POST /dar/user/addUser HTTP/1.1" 200 60
+INFO     common.send_request:send_request.py:98 POST http://127.0.0.1:8787/dar/user/addUser → 200, 0.023s
+DEBUG    common.send_request:send_request.py:99 响应体: {
+  "msg": "\u65b0\u589e\u5931\u8d25",
+  "msg_code": 9001
+}
+
+INFO     common.assertions:assertions.py:77 断言通过
+INFO     testcase.conftest:conftest.py:21 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:43 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:41 ------------- 用例开始 -------------
+INFO     testcase.conftest:conftest.py:19 ------------- 用例开始 -------------
+INFO     common.send_request:send_request.py:65 POST http://127.0.0.1:8787/coupApply/cms/shoppingInventory
+DEBUG    urllib3.connectionpool:connectionpool.py:241 Starting new HTTP connection (1): 127.0.0.1:8787
+DEBUG    urllib3.connectionpool:connectionpool.py:544 http://127.0.0.1:8787 "POST /coupApply/cms/shoppingInventory HTTP/1.1" 200 134
+INFO     common.send_request:send_request.py:98 POST http://127.0.0.1:8787/coupApply/cms/shoppingInventory → 200, 0.002s
+DEBUG    common.send_request:send_request.py:99 响应体: {
+  "createTime": "2026-06-16 22:13:29",
+  "error": "\u5546\u54c1\u5e93\u5b58\u4e0d\u8db3",
+  "error_code": "0000",
+  "status": "1"
+}
+
+INFO     common.assertions:assertions.py:77 断言通过
+INFO     testcase.conftest:conftest.py:21 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:43 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:41 ------------- 用例开始 -------------
+INFO     testcase.conftest:conftest.py:19 ------------- 用例开始 -------------
+INFO     common.send_request:send_request.py:65 POST http://127.0.0.1:8787/coupApply/cms/productDetail
+DEBUG    urllib3.connectionpool:connectionpool.py:241 Starting new HTTP connection (1): 127.0.0.1:8787
+DEBUG    urllib3.connectionpool:connectionpool.py:544 http://127.0.0.1:8787 "POST /coupApply/cms/productDetail HTTP/1.1" 200 150
+INFO     common.send_request:send_request.py:98 POST http://127.0.0.1:8787/coupApply/cms/productDetail → 200, 0.013s
+DEBUG    common.send_request:send_request.py:99 响应体: {
+  "error": "\u4e0d\u5b58\u5728\u8be5\u5546\u54c1",
+  "error_code": "4000",
+  "goodsId": "",
+  "item": {},
+  "secache_date": "2026-06-16 22:13:29"
+}
+
+INFO     common.assertions:assertions.py:77 断言通过
+INFO     testcase.conftest:conftest.py:21 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:43 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:41 ------------- 用例开始 -------------
+INFO     testcase.conftest:conftest.py:19 ------------- 用例开始 -------------
+INFO     common.send_request:send_request.py:65 POST http://127.0.0.1:8787/dar/user/login
+DEBUG    urllib3.connectionpool:connectionpool.py:241 Starting new HTTP connection (1): 127.0.0.1:8787
+DEBUG    urllib3.connectionpool:connectionpool.py:544 http://127.0.0.1:8787 "POST /dar/user/login HTTP/1.1" 200 195
+INFO     common.send_request:send_request.py:98 POST http://127.0.0.1:8787/dar/user/login → 200, 0.028s
+DEBUG    common.send_request:send_request.py:99 响应体: {
+  "error_code": null,
+  "msg": "\u767b\u5f55\u6210\u529f",
+  "msg_code": 200,
+  "orgId": "6140913758128971280",
+  "token": "A0fF990cf6913D54EAD3B876C5eeB6",
+  "userId": "2470749778151992028"
+}
+
+DEBUG    common.connection:connection.py:199 Redis 连接成功: localhost:6379
+DEBUG    common.connection:connection.py:209 Redis 连接已关闭
+INFO     common.assertions:assertions.py:315 redis 断言成功 | key=token:test01 存在
+INFO     common.assertions:assertions.py:77 断言通过
+INFO     testcase.conftest:conftest.py:21 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:43 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:41 ------------- 用例开始 -------------
+INFO     testcase.conftest:conftest.py:19 ------------- 用例开始 -------------
+INFO     common.send_request:send_request.py:65 POST http://127.0.0.1:8787/dar/user/addUser
+DEBUG    urllib3.connectionpool:connectionpool.py:241 Starting new HTTP connection (1): 127.0.0.1:8787
+DEBUG    urllib3.connectionpool:connectionpool.py:544 http://127.0.0.1:8787 "POST /dar/user/addUser HTTP/1.1" 200 81
+INFO     common.send_request:send_request.py:98 POST http://127.0.0.1:8787/dar/user/addUser → 200, 0.037s
+DEBUG    common.send_request:send_request.py:99 响应体: {
+  "error_code": null,
+  "msg": "\u65b0\u589e\u6210\u529f",
+  "msg_code": 200
+}
+
+INFO     common.assertions:assertions.py:77 断言通过
+INFO     testcase.conftest:conftest.py:21 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:43 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:41 ------------- 用例开始 -------------
+INFO     testcase.conftest:conftest.py:19 ------------- 用例开始 -------------
+INFO     common.send_request:send_request.py:65 POST http://127.0.0.1:8787/dar/user/addUser
+DEBUG    urllib3.connectionpool:connectionpool.py:241 Starting new HTTP connection (1): 127.0.0.1:8787
+DEBUG    urllib3.connectionpool:connectionpool.py:544 http://127.0.0.1:8787 "POST /dar/user/addUser HTTP/1.1" 200 60
+INFO     common.send_request:send_request.py:98 POST http://127.0.0.1:8787/dar/user/addUser → 200, 0.002s
+DEBUG    common.send_request:send_request.py:99 响应体: {
+  "msg": "\u65b0\u589e\u5931\u8d25",
+  "msg_code": 9001
+}
+
+INFO     common.assertions:assertions.py:77 断言通过
+INFO     testcase.conftest:conftest.py:21 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:43 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:41 ------------- 用例开始 -------------
+INFO     testcase.conftest:conftest.py:19 ------------- 用例开始 -------------
+INFO     common.send_request:send_request.py:65 POST http://127.0.0.1:8787/dar/user/addUser
+DEBUG    urllib3.connectionpool:connectionpool.py:241 Starting new HTTP connection (1): 127.0.0.1:8787
+DEBUG    urllib3.connectionpool:connectionpool.py:544 http://127.0.0.1:8787 "POST /dar/user/addUser HTTP/1.1" 200 60
+INFO     common.send_request:send_request.py:98 POST http://127.0.0.1:8787/dar/user/addUser → 200, 0.018s
+DEBUG    common.send_request:send_request.py:99 响应体: {
+  "msg": "\u65b0\u589e\u5931\u8d25",
+  "msg_code": 9001
+}
+
+INFO     common.assertions:assertions.py:77 断言通过
+INFO     testcase.conftest:conftest.py:21 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:43 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:41 ------------- 用例开始 -------------
+INFO     testcase.conftest:conftest.py:19 ------------- 用例开始 -------------
+INFO     common.send_request:send_request.py:65 POST http://127.0.0.1:8787/dar/user/addUser
+DEBUG    urllib3.connectionpool:connectionpool.py:241 Starting new HTTP connection (1): 127.0.0.1:8787
+DEBUG    urllib3.connectionpool:connectionpool.py:544 http://127.0.0.1:8787 "POST /dar/user/addUser HTTP/1.1" 200 60
+INFO     common.send_request:send_request.py:98 POST http://127.0.0.1:8787/dar/user/addUser → 200, 0.023s
+DEBUG    common.send_request:send_request.py:99 响应体: {
+  "msg": "\u65b0\u589e\u5931\u8d25",
+  "msg_code": 9001
+}
+
+INFO     common.assertions:assertions.py:77 断言通过
+INFO     testcase.conftest:conftest.py:21 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:43 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:41 ------------- 用例开始 -------------
+INFO     testcase.conftest:conftest.py:19 ------------- 用例开始 -------------
+INFO     common.send_request:send_request.py:65 POST http://127.0.0.1:8787/dar/user/addUser
+DEBUG    urllib3.connectionpool:connectionpool.py:241 Starting new HTTP connection (1): 127.0.0.1:8787
+DEBUG    urllib3.connectionpool:connectionpool.py:544 http://127.0.0.1:8787 "POST /dar/user/addUser HTTP/1.1" 200 81
+INFO     common.send_request:send_request.py:98 POST http://127.0.0.1:8787/dar/user/addUser → 200, 0.042s
+DEBUG    common.send_request:send_request.py:99 响应体: {
+  "error_code": null,
+  "msg": "\u65b0\u589e\u6210\u529f",
+  "msg_code": 200
+}
+
+DEBUG    common.connection:connection.py:62 MySQL 连接成功: localhost:3306/test_framework
+DEBUG    common.connection:connection.py:75 MySQL 连接已关闭
+INFO     common.assertions:assertions.py:264 数据库断言成功: 查到数据
+INFO     common.assertions:assertions.py:77 断言通过
+INFO     testcase.conftest:conftest.py:21 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:43 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:41 ------------- 用例开始 -------------
+INFO     testcase.conftest:conftest.py:19 ------------- 用例开始 -------------
+DEBUG    test_logger:test_logger.py:9 这是 DEBUG 日志 —— 排查问题时用，生产环境通常不输出
+INFO     test_logger:test_logger.py:10 这是 INFO 日志 —— 记录关键操作
+WARNING  test_logger:test_logger.py:11 这是 WARNING 日志 —— 不太对劲但没挂
+ERROR    test_logger:test_logger.py:12 这是 ERROR 日志 —— 出错了需要关注
+INFO     testcase.conftest:conftest.py:21 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:43 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:41 ------------- 用例开始 -------------
+INFO     testcase.conftest:conftest.py:19 ------------- 用例开始 -------------
+INFO     test_logger:test_logger.py:17 这条日志应该同时出现在控制台和 logs/test.log 里
+INFO     testcase.conftest:conftest.py:21 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:43 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:41 ------------- 用例开始 -------------
+INFO     testcase.conftest:conftest.py:19 ------------- 用例开始 -------------
+INFO     common.send_request:send_request.py:65 GET http://127.0.0.1:8787/index
+DEBUG    urllib3.connectionpool:connectionpool.py:241 Starting new HTTP connection (1): 127.0.0.1:8787
+DEBUG    urllib3.connectionpool:connectionpool.py:544 http://127.0.0.1:8787 "GET /index HTTP/1.1" 200 71
+INFO     common.send_request:send_request.py:98 GET http://127.0.0.1:8787/index → 200, 0.026s
+DEBUG    common.send_request:send_request.py:99 响应体: {
+  "msg": "\u6210\u529f\u8bbf\u95ee\u9996\u9875",
+  "msg_code": 200
+}
+
+INFO     testcase.conftest:conftest.py:21 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:43 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:41 ------------- 用例开始 -------------
+INFO     testcase.conftest:conftest.py:19 ------------- 用例开始 -------------
+INFO     common.send_request:send_request.py:65 POST http://127.0.0.1:8787/dar/user/login
+DEBUG    urllib3.connectionpool:connectionpool.py:241 Starting new HTTP connection (1): 127.0.0.1:8787
+DEBUG    urllib3.connectionpool:connectionpool.py:544 http://127.0.0.1:8787 "POST /dar/user/login HTTP/1.1" 200 195
+INFO     common.send_request:send_request.py:98 POST http://127.0.0.1:8787/dar/user/login → 200, 0.025s
+DEBUG    common.send_request:send_request.py:99 响应体: {
+  "error_code": null,
+  "msg": "\u767b\u5f55\u6210\u529f",
+  "msg_code": 200,
+  "orgId": "4140913758110176843",
+  "token": "A0fF990cf6913D54EAD3B876C5eeB6",
+  "userId": "2470749778151992028"
+}
+
+INFO     testcase.conftest:conftest.py:21 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:43 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:41 ------------- 用例开始 -------------
+INFO     testcase.conftest:conftest.py:19 ------------- 用例开始 -------------
+INFO     testcase.conftest:conftest.py:21 ------------- 用例结束 -------------
+INFO     conftest:conftest.py:43 ------------- 用例结束 -------------
+DEBUG    common.connection:connection.py:199 Redis 连接成功: localhost:6379
+INFO     testcase.conftest:conftest.py:89 Redis 测试数据已清理
+DEBUG    common.connection:connection.py:209 Redis 连接已关闭
+DEBUG    common.connection:connection.py:62 MySQL 连接成功: localhost:3306/test_framework
+DEBUG    common.connection:connection.py:97 执行成功: DELETE FROM sys_user WHERE username LIKE 'test_%'
+DEBUG    common.connection:connection.py:75 MySQL 连接已关闭
+INFO     testcase.conftest:conftest.py:71 测试数据已清理
+INFO     conftest:conftest.py:35 ========== 测试会话结束 ==========
+INFO     conftest:conftest.py:67 测试会话结束统计: 总=17, 通过=17, 失败=0, 跳过=0, 耗时=1.78s
+INFO     common.ding_robot:ding_robot.py:148 正在发送钉钉通知...
+DEBUG    urllib3.connectionpool:connectionpool.py:1062 Starting new HTTPS connection (1): oapi.dingtalk.com:443
+DEBUG    urllib3.connectionpool:connectionpool.py:544 https://oapi.dingtalk.com:443 "POST /robot/send?access_token=ba222ca81ba1380f82ddcef1722dbc19fbe97d9e195c92a8e4e0d6f06ed068ad&timestamp=1781619209631&sign=nkm82bJIOtJ8oI/9M6uyK5Ysaj%2BorIhAmrFIJROyHo4%3D HTTP/1.1" 200 None
+INFO     common.ding_robot:ding_robot.py:159 钉钉通知发送成功

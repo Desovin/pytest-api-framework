@@ -1,0 +1,51 @@
+# 新增用户接口 —— 测试数据
+# 每个元素是一个测试场景（正向 + 反向 + 边界）
+
+- baseInfo:
+    api_name: 新增用户
+    url: /dar/user/addUser
+    method: POST
+    header:
+      Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+  testCase:
+    - case_name: 正常新增用户
+      data:
+        username: testadduser
+        password: tset6789890
+        role_id: 123456789
+        dates: 2023-12-31
+        phone: 13800000000
+        token: ${get_extract_data(token)}   # 从 extract.yaml 读取登录时存入的 token
+      validation:
+        - contains: { 'msg': '新增成功' } # 响应中应包含 "msg": "新增成功"
+
+    - case_name: 无效新增-缺少token
+      data:
+        username: testadduser
+        password: tset6789890
+        role_id: 123456789
+        dates: 2023-12-31
+        phone: 13800000000
+        token: 
+      validation:
+        - contains: { 'msg': '新增失败' }
+
+    - case_name: 无效新增-缺少username
+      data:
+        password: tset6789890
+        role_id: 123456789
+        dates: 2023-12-31
+        phone: 13800000000
+        token: 
+      validation:
+        - contains: { 'msg': '新增失败' }
+
+    - case_name: 无效新增-缺少role_id
+      data:
+        username: testadduser
+        password: tset6789890
+        dates: 2023-12-31
+        phone: 13800000000
+        token:
+      validation:
+        - contains: { 'msg': '新增失败' }

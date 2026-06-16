@@ -1,0 +1,22 @@
+# 登录接口 —— session 级前置统一调用
+# system_login fixture 执行时自动提取 token 到 extract.yaml
+
+- baseInfo:
+    api_name: 用户登录
+    url: /dar/user/login
+    method: POST
+    header:
+      Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+  testCase:
+    - case_name: session登录-获取token
+      # 账号密码通过 ${get_login_user()} / ${get_login_pass()} 从 config.ini 读取
+      # 实现测试数据与代码解耦，换环境只需改配置文件
+      data:
+        user_name: ${get_login_user()}
+        passwd: ${get_login_pass()}
+      validation:
+        - contains: { 'msg': '登录成功' }
+      # extract: jsonpath 从响应中提取字段 → 写入 extract.yaml
+      # $.token 表示取响应 JSON 根目录下的 token 字段
+      extract:
+        token: $.token

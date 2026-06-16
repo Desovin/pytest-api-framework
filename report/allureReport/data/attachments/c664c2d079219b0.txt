@@ -1,0 +1,15 @@
+2026-06-16 22:13:29 | INFO     | conftest:41 | ------------- 用例开始 -------------
+2026-06-16 22:13:29 | INFO     | testcase.conftest:19 | ------------- 用例开始 -------------
+2026-06-16 22:13:29 | INFO     | common.send_request:65 | POST http://127.0.0.1:8787/coupApply/cms/productDetail
+2026-06-16 22:13:29 | INFO     | common.send_request:98 | POST http://127.0.0.1:8787/coupApply/cms/productDetail → 200, 0.013s
+2026-06-16 22:13:29 | DEBUG    | common.send_request:99 | 响应体: {
+  "error": "\u4e0d\u5b58\u5728\u8be5\u5546\u54c1",
+  "error_code": "4000",
+  "goodsId": "",
+  "item": {},
+  "secache_date": "2026-06-16 22:13:29"
+}
+
+2026-06-16 22:13:29 | INFO     | common.assertions:77 | 断言通过
+2026-06-16 22:13:29 | INFO     | testcase.conftest:21 | ------------- 用例结束 -------------
+2026-06-16 22:13:29 | INFO     | conftest:43 | ------------- 用例结束 -------------
