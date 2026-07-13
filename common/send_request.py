@@ -23,6 +23,7 @@ class SendRequest:
         base_url=None,
         timeout=60,
         headers=None,
+        # 在编排层，token_refresh_callback = DebugTalk.get_token
         token_refresh_callback=None,
         auth_header_key='token',
         auth_param_key='token'
@@ -62,7 +63,7 @@ class SendRequest:
 
         # 请求前记一条 INFO 日志
         # info方法：记录一条INFO日志（正常运行的关键信息）
-        self.logger.info('%s %s', method, url)
+        self.logger.info('{} {}', method, url)
 
         try:
             resp = self.session.request(method, url, headers=req_headers, **kwargs)
@@ -95,8 +96,8 @@ class SendRequest:
                 body = None
 
             # INFO 记录成功响应（DEBUG 级别才记录完整响应体，避免日志爆炸）
-            self.logger.info('%s %s → %d, %.3fs', method, url, resp.status_code, resp.elapsed.total_seconds())
-            self.logger.debug('响应体: %s', resp.text[:200])  # 只截前 200 字符
+            self.logger.info('{} {} → {}, {:.3f}s', method, url, resp.status_code, resp.elapsed.total_seconds())
+            self.logger.debug('响应体: {}', resp.text[:200])  # 只截前 200 字符
 
             return {
                 'status_code': resp.status_code,
@@ -105,7 +106,7 @@ class SendRequest:
                 'elapsed': resp.elapsed.total_seconds()
             }
         except requests.RequestException as e:
-            self.logger.error('%s %s 请求异常: %s', method, url, e)
+            self.logger.error('{} {} 请求异常: {}', method, url, e)
             return None
 
     def get(self, path, **kwargs):

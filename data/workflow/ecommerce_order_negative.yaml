@@ -1,0 +1,68 @@
+- baseInfo:
+    api_name: 商品列表-错误token
+    url: /coupApply/cms/goodsList
+    method: GET
+    header:
+      Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+  testCase:
+    - case_name: 错误token不影响列表
+      params:
+        msgType: getHandsetListOfCust
+        token: invalid_token
+      validation:
+        - contains: { error_code: '0000' }
+
+- baseInfo:
+    api_name: 商品详情-非法goodsId
+    url: /coupApply/cms/productDetail
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 非法goodsId
+      json:
+        pro_id: abc
+      validation:
+        - contains: { error_code: '4000' }
+
+- baseInfo:
+    api_name: 校验库存-库存不足
+    url: /coupApply/cms/shoppingInventory
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 库存不足
+      json:
+        goodsId: '18382788819'
+        count: 100
+      validation:
+        - contains: { status: '1' }
+
+- baseInfo:
+    api_name: 提交订单-缺少参数
+    url: /coupApply/cms/placeAnOrder
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 缺少price
+      json:
+        goods_id: '18382788819'
+        number: 1
+      validation:
+        - contains: { error_code: '9001' }
+
+- baseInfo:
+    api_name: 订单支付-错误订单号
+    url: /coupApply/cms/orderPay
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 订单号错误
+      json:
+        orderNumber: '111111111111111111111'
+        userId: ${get_extract_data(userId)}
+      validation:
+        - contains: { error_code: '4000' }

@@ -1,0 +1,43 @@
+- baseInfo:
+    api_name: 分配承运商
+    url: /logistics/assign
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: waybillNo不存在
+      json:
+        waybillNo: '999999999999999999'
+        carrierId: C001
+        carrierName: 顺丰
+      validation:
+        - contains: { msg_code: 4000 }
+
+    - case_name: 缺少carrierId
+      json:
+        waybillNo: ${get_extract_data(wb_seed)}
+        carrierName: 顺丰
+      validation:
+        - contains: { msg_code: 9001 }
+
+    - case_name: 缺少carrierName
+      json:
+        waybillNo: ${get_extract_data(wb_seed)}
+        carrierId: C001
+      validation:
+        - contains: { msg_code: 9001 }
+
+    - case_name: 缺少waybillNo
+      json:
+        carrierId: C001
+        carrierName: 顺丰
+      validation:
+        - contains: { msg_code: 9001 }
+
+    - case_name: waybillNo为空
+      json:
+        waybillNo: ''
+        carrierId: C001
+        carrierName: 顺丰
+      validation:
+        - contains: { msg_code: 9001 }

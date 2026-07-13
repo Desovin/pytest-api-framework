@@ -1,0 +1,119 @@
+- baseInfo:
+    api_name: 异常-创建运单
+    url: /logistics/create
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 异常流程-创建运单
+      json:
+        goodsId: '33809635011'
+        quantity: 1
+        fromAddr: 上海
+        toAddr: 广州
+        consignee: 李四
+      validation:
+        - contains: { msg_code: 200 }
+      extract:
+        waybillNo: $.waybillNo
+
+- baseInfo:
+    api_name: 异常-创建后上报异常
+    url: /logistics/exception
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 创建后上报异常
+      json:
+        waybillNo: ${get_extract_data(waybillNo)}
+        exceptionType: DAMAGE
+        description: 破损
+      validation:
+        - contains: { msg_code: 200 }
+        - contains: { status: EXCEPTION }
+
+- baseInfo:
+    api_name: 异常-创建第二个运单
+    url: /logistics/create
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 异常流程-创建第二个运单
+      json:
+        goodsId: '56996760797'
+        quantity: 1
+        fromAddr: 杭州
+        toAddr: 成都
+        consignee: 王五
+      validation:
+        - contains: { msg_code: 200 }
+      extract:
+        waybillNo: $.waybillNo
+
+- baseInfo:
+    api_name: 异常-分配后上报异常
+    url: /logistics/assign
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 异常流程-分配承运商
+      json:
+        waybillNo: ${get_extract_data(waybillNo)}
+        carrierId: C002
+        carrierName: 中通快递
+      validation:
+        - contains: { msg_code: 200 }
+
+- baseInfo:
+    api_name: 异常-分配后上报异常
+    url: /logistics/exception
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 分配后上报异常
+      json:
+        waybillNo: ${get_extract_data(waybillNo)}
+        exceptionType: LOST
+        description: 丢失
+      validation:
+        - contains: { msg_code: 200 }
+        - contains: { status: EXCEPTION }
+
+- baseInfo:
+    api_name: 异常-创建第三个运单
+    url: /logistics/create
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 异常流程-创建第三个运单
+      json:
+        goodsId: '82193785267'
+        quantity: 1
+        fromAddr: 南京
+        toAddr: 武汉
+        consignee: 赵六
+      validation:
+        - contains: { msg_code: 200 }
+      extract:
+        waybillNo: $.waybillNo
+
+- baseInfo:
+    api_name: 异常-创建第三个运单后上报异常
+    url: /logistics/exception
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 创建第三个运单后上报异常
+      json:
+        waybillNo: ${get_extract_data(waybillNo)}
+        exceptionType: DELAY
+        description: 派送延误
+      validation:
+        - contains: { msg_code: 200 }
+        - contains: { status: EXCEPTION }

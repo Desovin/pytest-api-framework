@@ -1,0 +1,43 @@
+- baseInfo:
+    api_name: 揽收
+    url: /logistics/pickup
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: waybillNo不存在
+      json:
+        waybillNo: '999999999999999999'
+        pickupTime: '2024-01-01 10:00:00'
+        driverId: D1001
+      validation:
+        - contains: { msg_code: 4000 }
+
+    - case_name: 缺少driverId
+      json:
+        waybillNo: ${get_extract_data(wb_seed)}
+        pickupTime: '2024-01-01 10:00:00'
+      validation:
+        - contains: { msg_code: 9001 }
+
+    - case_name: 缺少pickupTime
+      json:
+        waybillNo: ${get_extract_data(wb_seed)}
+        driverId: D1001
+      validation:
+        - contains: { msg_code: 9001 }
+
+    - case_name: 缺少waybillNo
+      json:
+        pickupTime: '2024-01-01 10:00:00'
+        driverId: D1001
+      validation:
+        - contains: { msg_code: 9001 }
+
+    - case_name: waybillNo为空
+      json:
+        waybillNo: ''
+        pickupTime: '2024-01-01 10:00:00'
+        driverId: D1001
+      validation:
+        - contains: { msg_code: 9001 }

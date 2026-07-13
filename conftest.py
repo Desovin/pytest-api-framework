@@ -65,7 +65,7 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     )
 
     logger.info(
-        '测试会话结束统计: 总=%s, 通过=%s, 失败=%s, 跳过=%s, 耗时=%.2fs',
+        '测试会话结束统计: 总={}, 通过={}, 失败={}, 跳过={}, 耗时={:.2f}s',
         summary['total'], summary['passed'], summary['failed'],
         summary['skipped'], duration
     )

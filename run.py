@@ -27,6 +27,27 @@ import pytest
 from http.server import SimpleHTTPRequestHandler
 
 
+# ═══════════════════════════════════════════════════
+# Windows 控制台编码修复
+# ═══════════════════════════════════════════════════
+# run.py 里也有直接 print 到控制台的输出（如 Allure 报告地址）。
+# 在 Windows 上先把控制台切到 UTF-8，避免中文显示为乱码。
+if sys.platform == 'win32':
+    try:
+        import ctypes
+        ctypes.windll.kernel32.SetConsoleOutputCP(65001)
+        ctypes.windll.kernel32.SetConsoleCP(65001)
+    except Exception:
+        pass
+    if hasattr(sys.stdout, 'reconfigure'):
+        try:
+            # 保留原 errors 策略，避免破坏 pytest FDCapture 的 errors='replace'
+            sys.stdout.reconfigure(encoding='utf-8', errors=getattr(sys.stdout, 'errors', 'replace'))
+            sys.stderr.reconfigure(encoding='utf-8', errors=getattr(sys.stderr, 'errors', 'replace'))
+        except Exception:
+            pass
+
+
 def parse_args():
     """解析命令行参数，支持 pytest 的 -n 和 --reruns。"""
     parser = argparse.ArgumentParser(

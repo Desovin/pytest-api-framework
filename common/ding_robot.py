@@ -159,14 +159,14 @@ def send_dingtalk(summary: dict) -> bool:
             logger.info('钉钉通知发送成功')
             return True
         else:
-            logger.error('钉钉通知发送失败: %s', result)
+            logger.error('钉钉通知发送失败: {}', result)
             return False
 
     except requests.RequestException as e:
-        logger.error('钉钉通知请求异常: %s', e)
+        logger.error('钉钉通知请求异常: {}', e)
         return False
     except Exception as e:
-        logger.error('钉钉通知发送异常: %s', e)
+        logger.error('钉钉通知发送异常: {}', e)
         return False
 
 

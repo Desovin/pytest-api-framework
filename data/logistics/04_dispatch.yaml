@@ -1,0 +1,43 @@
+- baseInfo:
+    api_name: 发往中转仓
+    url: /logistics/dispatch
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: waybillNo不存在
+      json:
+        waybillNo: '999999999999999999'
+        hubId: H001
+        hubName: 深圳转运中心
+      validation:
+        - contains: { msg_code: 4000 }
+
+    - case_name: 缺少hubId
+      json:
+        waybillNo: ${get_extract_data(wb_seed)}
+        hubName: 深圳转运中心
+      validation:
+        - contains: { msg_code: 9001 }
+
+    - case_name: 缺少hubName
+      json:
+        waybillNo: ${get_extract_data(wb_seed)}
+        hubId: H001
+      validation:
+        - contains: { msg_code: 9001 }
+
+    - case_name: 缺少waybillNo
+      json:
+        hubId: H001
+        hubName: 深圳转运中心
+      validation:
+        - contains: { msg_code: 9001 }
+
+    - case_name: waybillNo为空
+      json:
+        waybillNo: ''
+        hubId: H001
+        hubName: 深圳转运中心
+      validation:
+        - contains: { msg_code: 9001 }

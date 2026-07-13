@@ -4,13 +4,28 @@
 
 import pytest
 import allure
+import requests
 from common.record_log import get_logger
-from common.read_yaml import get_testcase_yaml
+from common.read_yaml import get_testcase_yaml, clear_extract, write_extract
 from common.connection import ConnectMysql, ConnectRedis
-from conf.setting import MYSQL_ENABLED, REDIS_ENABLED
+from conf.setting import MYSQL_ENABLED, REDIS_ENABLED, API_HOST
 from base.apiutil import RequestBase
 
 logger = get_logger(__name__)
+
+
+@pytest.fixture(scope='session', autouse=True)
+def clear_extract_file():
+    """
+    会话级清空 extract.yaml。
+
+    为什么需要？
+    工作流用例通过 extract.yaml 在多个接口之间传递数据（token、orderNumber、waybillNo）。
+    如果会话开始前不清空，上次测试残留的数据会污染本次工作流，导致断言失败。
+    """
+    clear_extract()
+    logger.info('extract.yaml 已清空')
+    yield
 
 
 @pytest.fixture(autouse=True)
@@ -30,7 +45,36 @@ def system_login():
         logger.info('执行 session 级登录...')
         RequestBase().specification_yaml(api_info[0][0], api_info[0][1])
     except Exception as e:
-        logger.error('登录失败，后续接口可能无法运行: %s', e)
+        logger.error('登录失败，后续接口可能无法运行: {}', e)
+
+
+@pytest.fixture(scope='session', autouse=True)
+def logistics_seed(system_login):
+    """
+    创建一个物流运单种子，供只读类单接口（track/cost/exception）使用。
+
+    单接口用例若按 (baseInfo,testCase) 独立参数化，则无法像工作流那样在 YAML 内创建运单。
+    因此由 session fixture 预先创建一个运单，提取到 wb_seed 供 YAML 占位符使用。
+    """
+    try:
+        resp = requests.post(
+            f'{API_HOST}/logistics/create',
+            json={
+                'goodsId': '18382788819',
+                'quantity': 1,
+                'fromAddr': '深圳市',
+                'toAddr': '北京市',
+                'consignee': '种子用户'
+            },
+            timeout=10
+        )
+        data = resp.json()
+        wb_seed = data.get('waybillNo')
+        if wb_seed:
+            write_extract({'wb_seed': wb_seed})
+            logger.info('物流种子运单已创建: {}', wb_seed)
+    except Exception as e:
+        logger.warning('物流种子运单创建失败: {}', e)
 
 
 @pytest.fixture(scope='session', autouse=True)

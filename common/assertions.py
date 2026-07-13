@@ -71,7 +71,7 @@ class Assertions:
                 elif mode == 'timeout':
                     all_flag += self._assert_timeout(expected)
                 else:
-                    logger.warning('不支持的断言模式: %s', mode)
+                    logger.warning('不支持的断言模式: {}', mode)
 
         if all_flag == 0:
             logger.info('断言通过')
@@ -103,14 +103,14 @@ class Assertions:
                 if exp_value != status_code:
                     flag += 1
                     logger.error(
-                        'contains 断言失败 | %s: 期望=%s, 实际=%s',
+                        'contains 断言失败 | {}: 期望={}, 实际={}',
                         key, exp_value, status_code
                     )
             elif response is None:
                 # 响应体为 None（空响应/超时），无法做字段包含判断
                 flag += 1
                 logger.error(
-                    'contains 断言失败 | %s: response 为 None，无法验证 "%s"',
+                    'contains 断言失败 | {}: response 为 None，无法验证 "{}"',
                     key, exp_value
                 )
             else:
@@ -264,7 +264,7 @@ class Assertions:
             logger.info('数据库断言成功: 查到数据')
         else:
             flag += 1
-            logger.error('数据库断言失败: 未查到数据，SQL=%s', sql)
+            logger.error('数据库断言失败: 未查到数据，SQL={}', sql)
         return flag
 
     def _assert_redis(self, expected):
@@ -300,18 +300,18 @@ class Assertions:
         # 验证存在性
         if expect_exists is True and actual is None:
             flag += 1
-            logger.error('redis 断言失败 | key=%s: 期望存在, 实际不存在', key)
+            logger.error('redis 断言失败 | key={}: 期望存在, 实际不存在', key)
         elif expect_exists is False and actual is not None:
             flag += 1
-            logger.error('redis 断言失败 | key=%s: 期望不存在, 实际值=%s', key, actual)
+            logger.error('redis 断言失败 | key={}: 期望不存在, 实际值={}', key, actual)
         elif expect_value is not None:
             if str(actual) != str(expect_value):
                 flag += 1
-                logger.error('redis 断言失败 | key=%s: 期望值=%s, 实际值=%s',
+                logger.error('redis 断言失败 | key={}: 期望值={}, 实际值={}',
                              key, expect_value, actual)
             else:
-                logger.info('redis 断言成功 | key=%s 值正确', key)
+                logger.info('redis 断言成功 | key={} 值正确', key)
         elif actual is not None:
-            logger.info('redis 断言成功 | key=%s 存在', key)
+            logger.info('redis 断言成功 | key={} 存在', key)
 
         return flag

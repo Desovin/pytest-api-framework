@@ -1,0 +1,51 @@
+- baseInfo:
+    api_name: 运费计算
+    url: /logistics/cost
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 正常计费
+      json:
+        waybillNo: ${get_extract_data(wb_seed)}
+        weight: 3.5
+        distance: 120
+        serviceType: STANDARD
+      validation:
+        - contains: { msg_code: 200 }
+        - contains: { currency: CNY }
+
+    - case_name: waybillNo不存在
+      json:
+        waybillNo: '999999999999999999'
+        weight: 1
+        distance: 10
+        serviceType: STANDARD
+      validation:
+        - contains: { msg_code: 4000 }
+
+    - case_name: 缺少weight
+      json:
+        waybillNo: ${get_extract_data(wb_seed)}
+        distance: 10
+        serviceType: STANDARD
+      validation:
+        - contains: { msg_code: 9001 }
+
+    - case_name: 重量为0
+      json:
+        waybillNo: ${get_extract_data(wb_seed)}
+        weight: 0
+        distance: 10
+        serviceType: STANDARD
+      validation:
+        - contains: { msg_code: 200 }
+
+    - case_name: 距离为负数
+      json:
+        waybillNo: ${get_extract_data(wb_seed)}
+        weight: 1
+        distance: -5
+        serviceType: STANDARD
+      validation:
+        - contains: { msg_code: 200 }

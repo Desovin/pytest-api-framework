@@ -1,0 +1,34 @@
+- baseInfo:
+    api_name: 订单支付
+    url: /coupApply/cms/orderPay
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 正常支付
+      json:
+        orderNumber: ${get_extract_data(orderNumber)}
+        userId: ${get_extract_data(userId)}
+      validation:
+        - contains: { error_code: '0000' }
+        - contains: { message: 订单支付成功 }
+
+    - case_name: 订单号不存在
+      json:
+        orderNumber: '000000000000000000000'
+        userId: ${get_extract_data(userId)}
+      validation:
+        - contains: { error_code: '4000' }
+
+    - case_name: 缺少userId
+      json:
+        orderNumber: ${get_extract_data(orderNumber)}
+      validation:
+        - contains: { error_code: '9001' }
+
+    - case_name: userId不匹配
+      json:
+        orderNumber: ${get_extract_data(orderNumber)}
+        userId: wrong_user_id
+      validation:
+        - contains: { error_code: '4000' }

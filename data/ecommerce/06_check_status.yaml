@@ -1,0 +1,30 @@
+- baseInfo:
+    api_name: 查询订单状态
+    url: /coupApply/cms/checkOrderStatus
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 正常查询
+      json:
+        orderNumber: ${get_extract_data(orderNumber)}
+      validation:
+        - contains: { error_code: '' }
+        - contains: { status: '0' }
+
+    - case_name: 订单号不存在
+      json:
+        orderNumber: '000000000000000000000'
+      validation:
+        - contains: { error_code: '4000' }
+
+    - case_name: 缺少orderNumber
+      json: {}
+      validation:
+        - contains: { error_code: '4000' }
+
+    - case_name: orderNumber为空
+      json:
+        orderNumber: ''
+      validation:
+        - contains: { error_code: '4000' }

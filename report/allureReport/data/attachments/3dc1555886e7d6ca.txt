@@ -1,9 +1,0 @@
-2026-06-16 22:13:28 | INFO     | conftest:41 | ------------- 用例开始 -------------
-2026-06-16 22:13:28 | INFO     | testcase.conftest:19 | ------------- 用例开始 -------------
-2026-06-16 22:13:28 | INFO     | common.send_request:65 | GET http://127.0.0.1:8787/test/timeout
-2026-06-16 22:13:29 | ERROR    | common.send_request:108 | GET http://127.0.0.1:8787/test/timeout 请求异常: HTTPConnectionPool(host='127.0.0.1', port=8787): Read timed out. (read timeout=1)
-2026-06-16 22:13:29 | INFO     | base.apiutil:123 | 接口超时 请求超时（符合预期）
-2026-06-16 22:13:29 | INFO     | common.assertions:232 | timeout 断言通过 | 请求按预期超时
-2026-06-16 22:13:29 | INFO     | common.assertions:77 | 断言通过
-2026-06-16 22:13:29 | INFO     | testcase.conftest:21 | ------------- 用例结束 -------------
-2026-06-16 22:13:29 | INFO     | conftest:43 | ------------- 用例结束 -------------

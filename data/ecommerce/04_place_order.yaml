@@ -1,0 +1,64 @@
+- baseInfo:
+    api_name: 提交订单
+    url: /coupApply/cms/placeAnOrder
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 正常提交订单
+      json:
+        goods_id: '18382788819'
+        number: 2
+        price: '99.00'
+        consignee_info:
+          name: 张三
+          phone: 13800000000
+          address: 北京市海淀区
+      validation:
+        - contains: { error_code: '0000' }
+        - contains: { message: 提交订单成功 }
+      extract:
+        orderNumber: $.orderNumber
+
+    - case_name: 缺少goods_id
+      json:
+        number: 2
+        price: '99.00'
+      validation:
+        - contains: { error_code: '9001' }
+
+    - case_name: 商品ID不存在
+      json:
+        goods_id: '00000000000'
+        number: 1
+        price: '99.00'
+        consignee_info:
+          name: 张三
+          phone: 13800000000
+          address: 北京
+      validation:
+        - contains: { error_code: '4000' }
+
+    - case_name: price为空
+      json:
+        goods_id: '18382788819'
+        number: 1
+        price: ''
+        consignee_info:
+          name: 张三
+          phone: 13800000000
+          address: 北京
+      validation:
+        - contains: { error_code: '9001' }
+
+    - case_name: number为负数
+      json:
+        goods_id: '18382788819'
+        number: -1
+        price: '99.00'
+        consignee_info:
+          name: 张三
+          phone: 13800000000
+          address: 北京
+      validation:
+        - contains: { error_code: '9001' }

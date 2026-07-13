@@ -1,0 +1,190 @@
+# 并发 benchmark 专用：大量只读接口用例，可被 pytest-xdist 安全并行执行。
+# /benchmark/slow_read 模拟 50ms 接口延迟，让 xdist 加速比能够真实体现。
+
+- baseInfo:
+    api_name: 慢查询
+    url: /benchmark/slow_read
+    method: GET
+    header:
+      Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+  testCase:
+    - case_name: 慢查询-01
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-02
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-03
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-04
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-05
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-06
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-07
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-08
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-09
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-10
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-11
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-12
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-13
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-14
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-15
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-16
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-17
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-18
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-19
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-20
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-21
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-22
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-23
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-24
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-25
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-26
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-27
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-28
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-29
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-30
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-31
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-32
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-33
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-34
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-35
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-36
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-37
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-38
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-39
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-40
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-41
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-42
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-43
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-44
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-45
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-46
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-47
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-48
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-49
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-50
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-51
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-52
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-53
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-54
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-55
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-56
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-57
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-58
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-59
+      validation:
+        - contains: { msg_code: 200 }
+    - case_name: 慢查询-60
+      validation:
+        - contains: { msg_code: 200 }

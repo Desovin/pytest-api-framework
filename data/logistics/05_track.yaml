@@ -1,0 +1,37 @@
+- baseInfo:
+    api_name: 查询物流轨迹
+    url: /logistics/track
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 正常查询轨迹
+      json:
+        waybillNo: ${get_extract_data(wb_seed)}
+      validation:
+        - contains: { msg_code: 200 }
+        - contains: { msg: 查询成功 }
+
+    - case_name: waybillNo不存在
+      json:
+        waybillNo: '999999999999999999'
+      validation:
+        - contains: { msg_code: 4000 }
+
+    - case_name: 缺少waybillNo
+      json: {}
+      validation:
+        - contains: { msg_code: 9001 }
+
+- baseInfo:
+    api_name: 查询物流轨迹GET
+    url: /logistics/track
+    method: GET
+    header:
+      Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+  testCase:
+    - case_name: GET方式查询
+      params:
+        waybillNo: ${get_extract_data(wb_seed)}
+      validation:
+        - contains: { msg_code: 200 }

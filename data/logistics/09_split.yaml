@@ -1,0 +1,78 @@
+- baseInfo:
+    api_name: 拆单-创建运单
+    url: /logistics/create
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 前置-创建运单
+      json:
+        goodsId: '18382788819'
+        quantity: 3
+        fromAddr: 深圳
+        toAddr: 北京
+        consignee: 张三
+      validation:
+        - contains: { msg_code: 200 }
+      extract:
+        waybillNo: $.waybillNo
+
+- baseInfo:
+    api_name: 拆单
+    url: /logistics/split
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 正常拆单
+      json:
+        waybillNo: ${get_extract_data(waybillNo)}
+        splitItems:
+          - quantity: 1
+            toAddr: 北京
+          - quantity: 1
+            toAddr: 上海
+      validation:
+        - contains: { msg_code: 200 }
+        - contains: { status: SPLIT }
+
+    - case_name: waybillNo不存在
+      json:
+        waybillNo: '999999999999999999'
+        splitItems:
+          - quantity: 1
+            toAddr: 北京
+      validation:
+        - contains: { msg_code: 4000 }
+
+    - case_name: 缺少splitItems
+      json:
+        waybillNo: ${get_extract_data(waybillNo)}
+      validation:
+        - contains: { msg_code: 9001 }
+
+    - case_name: 状态不允许拆单
+      json:
+        waybillNo: ${get_extract_data(waybillNo)}
+        splitItems:
+          - quantity: 1
+            toAddr: 深圳
+      validation:
+        - contains: { msg_code: 4000 }
+
+    - case_name: 拆单数量超限
+      json:
+        waybillNo: ${get_extract_data(waybillNo)}
+        splitItems:
+          - quantity: 1
+            toAddr: A
+          - quantity: 1
+            toAddr: B
+          - quantity: 1
+            toAddr: C
+          - quantity: 1
+            toAddr: D
+          - quantity: 1
+            toAddr: E
+      validation:
+        - contains: { msg_code: 4000 }

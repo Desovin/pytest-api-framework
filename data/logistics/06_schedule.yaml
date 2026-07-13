@@ -1,0 +1,43 @@
+- baseInfo:
+    api_name: 预约派送
+    url: /logistics/schedule
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: waybillNo不存在
+      json:
+        waybillNo: '999999999999999999'
+        deliveryDate: '2024-01-02'
+        timeWindow: 09:00-12:00
+      validation:
+        - contains: { msg_code: 4000 }
+
+    - case_name: 缺少派送日期
+      json:
+        waybillNo: ${get_extract_data(wb_seed)}
+        timeWindow: 09:00-12:00
+      validation:
+        - contains: { msg_code: 9001 }
+
+    - case_name: 缺少timeWindow
+      json:
+        waybillNo: ${get_extract_data(wb_seed)}
+        deliveryDate: '2024-01-02'
+      validation:
+        - contains: { msg_code: 9001 }
+
+    - case_name: 缺少waybillNo
+      json:
+        deliveryDate: '2024-01-02'
+        timeWindow: 09:00-12:00
+      validation:
+        - contains: { msg_code: 9001 }
+
+    - case_name: waybillNo为空
+      json:
+        waybillNo: ''
+        deliveryDate: '2024-01-02'
+        timeWindow: 09:00-12:00
+      validation:
+        - contains: { msg_code: 9001 }

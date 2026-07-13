@@ -1,0 +1,31 @@
+- baseInfo:
+    api_name: 商品列表
+    url: /coupApply/cms/goodsList
+    method: GET
+    header:
+      Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+  testCase:
+    - case_name: 正常获取商品列表
+      params:
+        msgType: getHandsetListOfCust
+      validation:
+        - contains: { error_code: '0000' }
+        - contains: { msg: '' }
+
+    - case_name: 缺少msgType
+      params: {}
+      validation:
+        - contains: { error_code: '9001' }
+
+    - case_name: 错误msgType
+      params:
+        msgType: wrongType
+      validation:
+        - contains: { error_code: '4000' }
+
+    - case_name: 带token请求
+      params:
+        msgType: getHandsetListOfCust
+        token: ${get_extract_data(token)}
+      validation:
+        - contains: { error_code: '0000' }

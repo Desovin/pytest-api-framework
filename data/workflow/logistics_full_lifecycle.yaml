@@ -1,0 +1,108 @@
+- baseInfo:
+    api_name: 物流-创建运单
+    url: /logistics/create
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 物流流程-创建运单
+      json:
+        goodsId: '18382788819'
+        quantity: 2
+        fromAddr: 深圳
+        toAddr: 北京
+        consignee: 张三
+      validation:
+        - contains: { msg_code: 200 }
+      extract:
+        waybillNo: $.waybillNo
+
+- baseInfo:
+    api_name: 物流-分配承运商
+    url: /logistics/assign
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 物流流程-分配承运商
+      json:
+        waybillNo: ${get_extract_data(waybillNo)}
+        carrierId: C001
+        carrierName: 顺丰速运
+      validation:
+        - contains: { msg_code: 200 }
+
+- baseInfo:
+    api_name: 物流-揽收
+    url: /logistics/pickup
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 物流流程-揽收
+      json:
+        waybillNo: ${get_extract_data(waybillNo)}
+        pickupTime: '2024-01-01 10:00:00'
+        driverId: D1001
+      validation:
+        - contains: { msg_code: 200 }
+
+- baseInfo:
+    api_name: 物流-发运
+    url: /logistics/dispatch
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 物流流程-发运
+      json:
+        waybillNo: ${get_extract_data(waybillNo)}
+        hubId: H001
+        hubName: 深圳转运中心
+      validation:
+        - contains: { msg_code: 200 }
+
+- baseInfo:
+    api_name: 物流-查询轨迹
+    url: /logistics/track
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 物流流程-查询轨迹
+      json:
+        waybillNo: ${get_extract_data(waybillNo)}
+      validation:
+        - contains: { msg_code: 200 }
+        - contains: { status: IN_TRANSIT }
+
+- baseInfo:
+    api_name: 物流-预约派送
+    url: /logistics/schedule
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 物流流程-预约派送
+      json:
+        waybillNo: ${get_extract_data(waybillNo)}
+        deliveryDate: '2024-01-02'
+        timeWindow: 09:00-12:00
+      validation:
+        - contains: { msg_code: 200 }
+
+- baseInfo:
+    api_name: 物流-签收
+    url: /logistics/sign
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 物流流程-签收
+      json:
+        waybillNo: ${get_extract_data(waybillNo)}
+        signerName: 张三
+        signTime: '2024-01-02 10:30:00'
+      validation:
+        - contains: { msg_code: 200 }
+        - contains: { status: DELIVERED }

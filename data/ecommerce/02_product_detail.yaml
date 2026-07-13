@@ -1,0 +1,29 @@
+- baseInfo:
+    api_name: 商品详情
+    url: /coupApply/cms/productDetail
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 正常获取商品详情
+      json:
+        pro_id: '18382788819'
+      validation:
+        - contains: { error_code: '0000' }
+
+    - case_name: 商品ID不存在
+      json:
+        pro_id: '00000000000'
+      validation:
+        - contains: { error_code: '4000' }
+
+    - case_name: 缺少pro_id
+      json: {}
+      validation:
+        - contains: { error_code: '4000' }
+
+    - case_name: pro_id为空字符串
+      json:
+        pro_id: ''
+      validation:
+        - contains: { error_code: '4000' }

@@ -1,0 +1,44 @@
+- baseInfo:
+    api_name: 异常上报
+    url: /logistics/exception
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 正常上报异常
+      json:
+        waybillNo: ${get_extract_data(wb_seed)}
+        exceptionType: DAMAGE
+        description: 外包装破损
+      validation:
+        - contains: { msg_code: 200 }
+        - contains: { status: EXCEPTION }
+
+    - case_name: waybillNo不存在
+      json:
+        waybillNo: '999999999999999999'
+        exceptionType: LOST
+        description: 包裹丢失
+      validation:
+        - contains: { msg_code: 4000 }
+
+    - case_name: 缺少异常类型
+      json:
+        waybillNo: ${get_extract_data(wb_seed)}
+        description: 破损
+      validation:
+        - contains: { msg_code: 9001 }
+
+    - case_name: 缺少描述
+      json:
+        waybillNo: ${get_extract_data(wb_seed)}
+        exceptionType: DELAY
+      validation:
+        - contains: { msg_code: 9001 }
+
+    - case_name: 缺少waybillNo
+      json:
+        exceptionType: LOST
+        description: 包裹丢失
+      validation:
+        - contains: { msg_code: 9001 }

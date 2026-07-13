@@ -20,3 +20,4 @@
       # $.token 表示取响应 JSON 根目录下的 token 字段
       extract:
         token: $.token
+        userId: $.userId

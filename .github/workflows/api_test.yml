@@ -45,12 +45,13 @@ jobs:
       mysql:
         image: mysql:8.0
         env:
-          MYSQL_ROOT_PASSWORD: 123456
+          # 密码从 GitHub Secrets 读取，不硬编码在 workflow 文件中
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
           MYSQL_DATABASE: test_framework
         ports:
           - 3306:3306
         options: >-
-          --health-cmd "mysqladmin ping -h 127.0.0.1 -uroot -p123456"
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -uroot -p${{ secrets.MYSQL_PASSWORD }}"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -111,6 +112,9 @@ jobs:
       #    所以这里只需要注入 DINGTALK_* 环境变量。
       - name: Run pytest
         env:
+          # 敏感配置通过 GitHub Secrets 注入（.env 文件不会提交到仓库）
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          LOGIN_PASSWORD: ${{ secrets.LOGIN_PASSWORD }}
           # CI 环境下用 GitHub Secrets 覆盖 config.ini 的钉钉配置
           DINGTALK_ENABLED: 'true'
           DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}

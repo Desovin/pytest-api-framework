@@ -1,8 +1,0 @@
-[32mINFO    [0m conftest:conftest.py:41 ------------- 用例开始 -------------
-[32mINFO    [0m testcase.conftest:conftest.py:19 ------------- 用例开始 -------------
-[35mDEBUG   [0m test_logger:test_logger.py:9 这是 DEBUG 日志 —— 排查问题时用，生产环境通常不输出
-[32mINFO    [0m test_logger:test_logger.py:10 这是 INFO 日志 —— 记录关键操作
-[33mWARNING [0m test_logger:test_logger.py:11 这是 WARNING 日志 —— 不太对劲但没挂
-[31m[1mERROR   [0m test_logger:test_logger.py:12 这是 ERROR 日志 —— 出错了需要关注
-[32mINFO    [0m testcase.conftest:conftest.py:21 ------------- 用例结束 -------------
-[32mINFO    [0m conftest:conftest.py:43 ------------- 用例结束 -------------

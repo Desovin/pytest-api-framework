@@ -1,0 +1,31 @@
+- baseInfo:
+    api_name: 查询承运商
+    url: /logistics/carrier
+    method: GET
+    header:
+      Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+  testCase:
+    - case_name: 查询顺丰
+      params:
+        carrierId: C001
+      validation:
+        - contains: { msg_code: 200 }
+        - contains: { carrierName: 顺丰速运 }
+
+    - case_name: 查询中通
+      params:
+        carrierId: C002
+      validation:
+        - contains: { msg_code: 200 }
+        - contains: { carrierName: 中通快递 }
+
+    - case_name: 查询不存在承运商
+      params:
+        carrierId: C999
+      validation:
+        - contains: { msg_code: 4000 }
+
+    - case_name: 缺少carrierId
+      params: {}
+      validation:
+        - contains: { msg_code: 9001 }

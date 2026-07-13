@@ -90,8 +90,11 @@ class RequestBase:
             # 只处理请求参数 key（data/json/params），跳过 case_name/validation/extract
             params_type = ['data', 'json', 'params']
             request_params = {}
+            # 注意这里test_case是单个的，通过parametrize去实现传多个
+            # items() 是字典的方法，把字典的每一个键值对拆成 (key, value) 元组
             for key, value in test_case.items():
                 if key in params_type:
+                    # replace_load() 用于替换占位符
                     request_params[key] = self.replace_load(value)
 
             # ── Step 6.5: 读取超时时间（可选，模块 12 异常场景用）──
@@ -120,11 +123,11 @@ class RequestBase:
             if resp is None:
                 if expect_timeout:
                     # 预期超时的场景：请求返回 None 是符合预期的
-                    logger.info('%s 请求超时（符合预期）', api_name)
+                    logger.info('{} 请求超时（符合预期）', api_name)
                     allure.attach('请求超时（符合预期）', '响应信息', allure.attachment_type.TEXT)
                 else:
                     # 非预期超时：按原有逻辑报错
-                    logger.error('%s 请求失败', api_name)
+                    logger.error('{} 请求失败', api_name)
                     raise Exception(f'{case_name}: 请求失败')
 
                 # 执行断言（timeout 模式）
@@ -156,7 +159,7 @@ class RequestBase:
                 )
 
         except Exception as e:
-            logger.error('specification_yaml 执行异常: %s', e)
+            logger.error('specification_yaml 执行异常: {}', e)
             raise
 
     # ═══════════════════════════════════════════════════
@@ -224,10 +227,10 @@ class RequestBase:
                 # *params 表示将 params 列表中的元素解包作为参数传递给方法
                 result = getattr(DebugTalk(), func_name)(*params)
             except AttributeError:
-                logger.warning('DebugTalk 中未找到方法: %s，保持原占位符', func_name)
+                logger.warning('DebugTalk 中未找到方法: {}，保持原占位符', func_name)
                 result = placeholder
             except Exception as e:
-                logger.error('调用 DebugTalk.%s 失败: %s', func_name, e)
+                logger.error('调用 DebugTalk.{} 失败: {}', func_name, e)
                 result = placeholder
 
             # 替换
@@ -279,9 +282,9 @@ class RequestBase:
                     # 单值取第一个元素，多值保留列表
                     value = result[0] if len(result) == 1 else result
                     write_extract({var_name: value}) # 目录已经写在方法中
-                    logger.info('提取字段: %s = %s', var_name, value)
+                    logger.info('提取字段: {} = {}', var_name, value)
                 else:
-                    logger.warning('jsonpath 未匹配到数据: %s', jsonpath_expr)
+                    logger.warning('jsonpath 未匹配到数据: {}', jsonpath_expr)
             except Exception as e:
-                logger.error('提取字段 %s 失败: %s', var_name, e)
+                logger.error('提取字段 {} 失败: {}', var_name, e)
 

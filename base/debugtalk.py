@@ -49,7 +49,7 @@ def _get_token_from_redis():
             logger.debug('从 Redis 命中 token')
         return value
     except Exception as e:
-        logger.warning('从 Redis 读取 token 失败: %s', e)
+        logger.warning('从 Redis 读取 token 失败: {}', e)
         return None
 
 
@@ -61,9 +61,9 @@ def _save_token_to_redis(token):
         r = ConnectRedis()
         # Redis 自动过期，避免脏 token 长期残留
         r.set(_redis_token_key(), token, expire=TOKEN_EXPIRE_SECONDS)
-        logger.debug('token 已写入 Redis，过期时间 %s 秒', TOKEN_EXPIRE_SECONDS)
+        logger.debug('token 已写入 Redis，过期时间 {} 秒', TOKEN_EXPIRE_SECONDS)
     except Exception as e:
-        logger.warning('token 写入 Redis 失败: %s', e)
+        logger.warning('token 写入 Redis 失败: {}', e)
 
 
 class DebugTalk:
@@ -167,16 +167,33 @@ class DebugTalk:
         return token
 
     @staticmethod
-    def get_extract_data(key):
+    def get_extract_data(key, index=None):
         """
         从 extract.yaml 读取指定 key 的值。
 
-        对应 YAML 中的 ${get_extract_data(token)} 占位符。
-        用于接口依赖场景：上一个接口提取了 token 到 extract.yaml，
+        对应 YAML 中的占位符：
+        - ${get_extract_data(token)}            读取单个字符串
+        - ${get_extract_data(goodsIds,0)}       读取列表并取第 1 个元素
+        - ${get_extract_data(subWaybillNos,1)}  读取列表并取第 2 个元素
+
+        用于接口依赖场景：上一个接口提取了字段到 extract.yaml，
         下一个接口通过此方法读取。
 
         :param key: extract.yaml 中的键名
-        :return: 值，未找到则返回空字符串
+        :param index: 可选，列表索引（从 0 开始）
+        :return: 值，未找到或索引越界则返回空字符串
         """
         value = get_extract(key)
-        return value if value is not None else ''
+        if value is None:
+            return ''
+
+        if index is not None:
+            try:
+                idx = int(index)
+                if isinstance(value, list) and 0 <= idx < len(value):
+                    return value[idx]
+                return ''
+            except (ValueError, TypeError):
+                return ''
+
+        return value

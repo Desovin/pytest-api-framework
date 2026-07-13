@@ -59,11 +59,11 @@ class ConnectMysql:
             )
             # _conn 是连接池，_cursor 是游标，用于执行 SQL 语句和获取结果集
             self._cursor = self._conn.cursor()
-            logger.debug('MySQL 连接成功: %s:%s/%s',
+            logger.debug('MySQL 连接成功: {}:{}/{}',
                          self.config['host'], self.config['port'], self.config['database'])
             return True
         except pymysql.Error as e:
-            logger.error('MySQL 连接失败: %s', e)
+            logger.error('MySQL 连接失败: {}', e)
             return False
 
     def close(self):
@@ -94,10 +94,10 @@ class ConnectMysql:
             else:
                 self._cursor.execute(sql)
             self._conn.commit()  # 提交事务 commit
-            logger.debug('执行成功: %s', sql[:80])
+            logger.debug('执行成功: {}', sql[:80])
         except pymysql.Error as e:
             self._conn.rollback()
-            logger.error('执行失败: %s, 错误: %s', sql[:80], e)
+            logger.error('执行失败: {}, 错误: {}', sql[:80], e)
             raise
         finally:
             self.close()
@@ -120,7 +120,7 @@ class ConnectMysql:
                 self._cursor.execute(sql)
             return self._cursor.fetchone()
         except pymysql.Error as e:
-            logger.error('查询失败: %s', e)
+            logger.error('查询失败: {}', e)
             return None
         finally:
             self.close()
@@ -140,7 +140,7 @@ class ConnectMysql:
                 self._cursor.execute(sql)
             return self._cursor.fetchall()
         except pymysql.Error as e:
-            logger.error('查询失败: %s', e)
+            logger.error('查询失败: {}', e)
             return []
         finally:
             self.close()
@@ -196,10 +196,10 @@ class ConnectRedis:
             )
             # ping 一下确认连接真的通了
             self._client.ping()
-            logger.debug('Redis 连接成功: %s:%s', self.config['host'], self.config['port'])
+            logger.debug('Redis 连接成功: {}:{}', self.config['host'], self.config['port'])
             return True
         except redis.RedisError as e:
-            logger.error('Redis 连接失败: %s', e)
+            logger.error('Redis 连接失败: {}', e)
             return False
 
     def close(self):
@@ -219,9 +219,9 @@ class ConnectRedis:
             return
         try:
             self._client.set(key, value, ex=expire)
-            logger.debug('Redis SET: %s = %s', key, value)
+            logger.debug('Redis SET: {} = {}', key, value)
         except redis.RedisError as e:
-            logger.error('Redis SET 失败: %s', e)
+            logger.error('Redis SET 失败: {}', e)
         finally:
             self.close()
 
@@ -236,7 +236,7 @@ class ConnectRedis:
             value = self._client.get(key)
             return value
         except redis.RedisError as e:
-            logger.error('Redis GET 失败: %s', e)
+            logger.error('Redis GET 失败: {}', e)
             return None
         finally:
             self.close()
@@ -250,9 +250,9 @@ class ConnectRedis:
             return
         try:
             self._client.delete(key)
-            logger.debug('Redis DELETE: %s', key)
+            logger.debug('Redis DELETE: {}', key)
         except redis.RedisError as e:
-            logger.error('Redis DELETE 失败: %s', e)
+            logger.error('Redis DELETE 失败: {}', e)
         finally:
             self.close()
 
@@ -271,7 +271,7 @@ class ConnectRedis:
         try:
             self._client.hset(name, key, value)
         except redis.RedisError as e:
-            logger.error('Redis HSET 失败: %s', e)
+            logger.error('Redis HSET 失败: {}', e)
         finally:
             self.close()
 
@@ -282,7 +282,7 @@ class ConnectRedis:
         try:
             return self._client.hget(name, key)
         except redis.RedisError as e:
-            logger.error('Redis HGET 失败: %s', e)
+            logger.error('Redis HGET 失败: {}', e)
             return None
         finally:
             self.close()

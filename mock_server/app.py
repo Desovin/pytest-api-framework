@@ -32,8 +32,16 @@ import json
 import random
 import string
 import datetime
+import threading
+from contextlib import contextmanager
 from flask import Flask, jsonify, request
-from conf.setting import MYSQL_ENABLED, REDIS_ENABLED
+from conf.setting import MYSQL_ENABLED, REDIS_ENABLED, MOCK_SERVER_HOST, MOCK_SERVER_PORT, MOCK_SERVER_DEBUG
+
+# 标记当前进程是 Mock Server，让日志系统写独立的 logs/test_mock_server.log，
+# 避免和 pytest 主进程 / xdist worker 抢占 test.log，导致 Windows 下日志滚动 rename 失败。
+# 必须在 import common.connection 之前设置，因为 connection.py 会触发 record_log.py 初始化。
+os.environ['MOCK_SERVER_PROCESS'] = '1'
+
 if MYSQL_ENABLED:
     from common.connection import ConnectMysql
 if REDIS_ENABLED:
@@ -49,6 +57,26 @@ app.config['JSON_AS_ASCII'] = False  # 保持中文原样输出
 # ═══════════════════════════════════════════════════
 
 _MOCK_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# 物流运单注册表的内存缓存 + 文件持久化锁
+_LOGISTICS_REGISTRY = None
+_LOGISTICS_LOCK = threading.Lock()
+
+
+@contextmanager
+def _logistics_registry():
+    """
+    物流运单注册表事务上下文。
+
+    进入时加载/返回内存中的注册表，退出时写回文件。
+    整个读-改-写周期加锁，避免 threaded=True 后的并发竞态。
+    """
+    global _LOGISTICS_REGISTRY
+    with _LOGISTICS_LOCK:
+        if _LOGISTICS_REGISTRY is None:
+            _LOGISTICS_REGISTRY = _read_json('logistics.json')
+        yield _LOGISTICS_REGISTRY
+        _write_json('logistics.json', _LOGISTICS_REGISTRY)
 
 
 def _random_token(length=30):
@@ -76,11 +104,23 @@ def _read_json(filename):
 
 
 def _write_json(filename, data):
-    """写入 JSON 文件到 mock_data/ 目录"""
+    """
+    原子方式写入 JSON 文件到 mock_data/ 目录。
+
+    为什么用临时文件 + os.replace？
+    - 直接写入目标文件时，如果进程中途崩溃或被其他进程同时读取，
+      可能留下一个半写入的损坏文件。
+    - 先写到 .tmp 临时文件，再原子替换（os.replace）目标文件，
+      其他进程要么读到旧文件，要么读到新文件，永远不会读到损坏的中间态。
+    - Windows 下 os.replace 会覆盖已存在的目标文件，且是原子操作。
+    """
     dir_path = os.path.join(_MOCK_DIR, 'mock_data')
     os.makedirs(dir_path, exist_ok=True)
-    with open(os.path.join(dir_path, filename), 'w', encoding='utf-8') as f:
+    target_path = os.path.join(dir_path, filename)
+    temp_path = target_path + '.tmp'
+    with open(temp_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False)
+    os.replace(temp_path, target_path)
 
 
 # ═══════════════════════════════════════════════════
@@ -405,8 +445,15 @@ def place_order():
     number = request.json.get('number')
     price = request.json.get('price')
 
-    if not all([goods_id, number, price]):
+    if not all([goods_id, number is not None, price]):
         return jsonify({'error': '参数错误或必填参数为空', 'error_code': '9001'})
+
+    try:
+        number = int(number)
+        if number <= 0:
+            return jsonify({'error': '商品数量必须大于0', 'error_code': '9001'})
+    except (ValueError, TypeError):
+        return jsonify({'error': '商品数量格式错误', 'error_code': '9001'})
 
     if goods_id not in VALID_GOODS_IDS:
         return jsonify({'error_code': '4000', 'error': '商品id不存在'})
@@ -487,8 +534,490 @@ def check_order_status():
     return jsonify({'error_code': '4000', 'error': '订单编号不存在'})
 
 
+# 承运商静态数据（物流查询用）
+CARRIER_MAP = {
+    'C001': {'carrierId': 'C001', 'carrierName': '顺丰速运', 'rating': 4.8, 'fleetSize': 12000},
+    'C002': {'carrierId': 'C002', 'carrierName': '中通快递', 'rating': 4.6, 'fleetSize': 15000},
+    'C003': {'carrierId': 'C003', 'carrierName': '韵达速递', 'rating': 4.5, 'fleetSize': 11000},
+    'C004': {'carrierId': 'C004', 'carrierName': '德邦物流', 'rating': 4.4, 'fleetSize': 8000},
+}
+
+
 # ═══════════════════════════════════════════════════
-# 4. 异常场景模拟（模块 12 使用）
+# 4. 物流调度接口（模块 7/9 扩展）
+# ═══════════════════════════════════════════════════
+
+def _get_logistics_registry():
+    """读取物流运单注册表（线程安全，带内存缓存）。"""
+    global _LOGISTICS_REGISTRY
+    with _LOGISTICS_LOCK:
+        if _LOGISTICS_REGISTRY is None:
+            _LOGISTICS_REGISTRY = _read_json('logistics.json')
+        return _LOGISTICS_REGISTRY
+
+
+def _save_logistics_registry(registry):
+    """保存物流运单注册表（线程安全）。"""
+    global _LOGISTICS_REGISTRY
+    with _LOGISTICS_LOCK:
+        _LOGISTICS_REGISTRY = registry
+        _write_json('logistics.json', registry)
+
+
+def _new_logistics_record(goods_id, quantity, from_addr, to_addr, consignee):
+    """创建一条新的运单记录"""
+    return {
+        'status': 'CREATED',
+        'goodsId': goods_id,
+        'quantity': quantity,
+        'fromAddr': from_addr,
+        'toAddr': to_addr,
+        'consignee': consignee,
+        'createTime': _now(),
+        'carrier': None,
+        'pickup': None,
+        'dispatch': None,
+        'schedule': None,
+        'sign': None,
+        'exception': None,
+        'returnInfo': None,
+        'subWaybillNos': [],
+        'history': [{'status': 'CREATED', 'time': _now()}]
+    }
+
+
+def _append_history(record, status):
+    """在运单历史中追加状态节点"""
+    record['history'].append({'status': status, 'time': _now()})
+
+
+@app.route('/logistics/create', methods=['POST'])
+def create_waybill():
+    """
+    创建运单。
+    请求体：{goodsId, quantity, fromAddr, toAddr, consignee}
+    """
+    data = request.json or {}
+    goods_id = data.get('goodsId')
+    quantity = data.get('quantity')
+    from_addr = data.get('fromAddr')
+    to_addr = data.get('toAddr')
+    consignee = data.get('consignee')
+
+    if not all([goods_id, quantity is not None, from_addr, to_addr, consignee]):
+        return jsonify({'msg': '参数错误', 'msg_code': 9001, 'error_code': '9001', 'data': None})
+
+    try:
+        quantity = int(quantity)
+        if quantity <= 0:
+            return jsonify({'msg': '数量必须大于0', 'msg_code': 9001, 'error_code': '9001', 'data': None})
+    except (ValueError, TypeError):
+        return jsonify({'msg': '数量格式错误', 'msg_code': 9001, 'error_code': '9001', 'data': None})
+
+    registry = _get_logistics_registry()
+    waybill_no = _random_digits(18)
+    registry[waybill_no] = _new_logistics_record(goods_id, quantity, from_addr, to_addr, consignee)
+    _save_logistics_registry(registry)
+
+    return jsonify({
+        'msg': '运单创建成功',
+        'msg_code': 200,
+        'error_code': '0000',
+        'waybillNo': waybill_no,
+        'status': 'CREATED',
+        'createTime': registry[waybill_no]['createTime']
+    })
+
+
+@app.route('/logistics/assign', methods=['POST'])
+def assign_carrier():
+    """分配承运商：CREATED -> ASSIGNED"""
+    data = request.json or {}
+    waybill_no = data.get('waybillNo')
+    carrier_id = data.get('carrierId')
+    carrier_name = data.get('carrierName')
+
+    if not all([waybill_no, carrier_id, carrier_name]):
+        return jsonify({'msg': '参数错误', 'msg_code': 9001, 'error_code': '9001', 'data': None})
+
+    registry = _get_logistics_registry()
+    record = registry.get(waybill_no)
+    if not record:
+        return jsonify({'msg': '运单不存在', 'msg_code': 4000, 'error_code': '4000', 'data': None})
+    if record['status'] != 'CREATED':
+        return jsonify({'msg': '运单状态不允许分配承运商', 'msg_code': 4000, 'error_code': '4000', 'data': None})
+
+    record['status'] = 'ASSIGNED'
+    record['carrier'] = {'carrierId': carrier_id, 'carrierName': carrier_name, 'assignTime': _now()}
+    _append_history(record, 'ASSIGNED')
+    _save_logistics_registry(registry)
+
+    return jsonify({
+        'msg': '承运商分配成功',
+        'msg_code': 200,
+        'error_code': '0000',
+        'waybillNo': waybill_no,
+        'status': 'ASSIGNED',
+        'carrierInfo': record['carrier']
+    })
+
+
+@app.route('/logistics/pickup', methods=['POST'])
+def pickup_waybill():
+    """确认揽收：ASSIGNED -> PICKED_UP"""
+    data = request.json or {}
+    waybill_no = data.get('waybillNo')
+    pickup_time = data.get('pickupTime')
+    driver_id = data.get('driverId')
+
+    if not all([waybill_no, pickup_time, driver_id]):
+        return jsonify({'msg': '参数错误', 'msg_code': 9001, 'error_code': '9001', 'data': None})
+
+    registry = _get_logistics_registry()
+    record = registry.get(waybill_no)
+    if not record:
+        return jsonify({'msg': '运单不存在', 'msg_code': 4000, 'error_code': '4000', 'data': None})
+    if record['status'] != 'ASSIGNED':
+        return jsonify({'msg': '运单状态不允许揽收', 'msg_code': 4000, 'error_code': '4000', 'data': None})
+
+    record['status'] = 'PICKED_UP'
+    record['pickup'] = {'pickupTime': pickup_time, 'driverId': driver_id}
+    _append_history(record, 'PICKED_UP')
+    _save_logistics_registry(registry)
+
+    return jsonify({
+        'msg': '揽收成功',
+        'msg_code': 200,
+        'error_code': '0000',
+        'waybillNo': waybill_no,
+        'status': 'PICKED_UP',
+        'pickupInfo': record['pickup']
+    })
+
+
+@app.route('/logistics/dispatch', methods=['POST'])
+def dispatch_waybill():
+    """发往中转仓：PICKED_UP -> IN_TRANSIT"""
+    data = request.json or {}
+    waybill_no = data.get('waybillNo')
+    hub_id = data.get('hubId')
+    hub_name = data.get('hubName')
+
+    if not all([waybill_no, hub_id, hub_name]):
+        return jsonify({'msg': '参数错误', 'msg_code': 9001, 'error_code': '9001', 'data': None})
+
+    registry = _get_logistics_registry()
+    record = registry.get(waybill_no)
+    if not record:
+        return jsonify({'msg': '运单不存在', 'msg_code': 4000, 'error_code': '4000', 'data': None})
+    if record['status'] != 'PICKED_UP':
+        return jsonify({'msg': '运单状态不允许发运', 'msg_code': 4000, 'error_code': '4000', 'data': None})
+
+    record['status'] = 'IN_TRANSIT'
+    record['dispatch'] = {'hubId': hub_id, 'hubName': hub_name}
+    _append_history(record, 'IN_TRANSIT')
+    _save_logistics_registry(registry)
+
+    return jsonify({
+        'msg': '发运成功',
+        'msg_code': 200,
+        'error_code': '0000',
+        'waybillNo': waybill_no,
+        'status': 'IN_TRANSIT',
+        'dispatchInfo': record['dispatch']
+    })
+
+
+@app.route('/logistics/track', methods=['GET', 'POST'])
+def track_waybill():
+    """查询物流轨迹"""
+    if request.method == 'GET':
+        waybill_no = request.args.get('waybillNo')
+    else:
+        waybill_no = (request.json or {}).get('waybillNo')
+
+    if not waybill_no:
+        return jsonify({'msg': '参数错误', 'msg_code': 9001, 'error_code': '9001', 'data': None})
+
+    registry = _get_logistics_registry()
+    record = registry.get(waybill_no)
+    if not record:
+        return jsonify({'msg': '运单不存在', 'msg_code': 4000, 'error_code': '4000', 'data': None})
+
+    return jsonify({
+        'msg': '查询成功',
+        'msg_code': 200,
+        'error_code': '0000',
+        'waybillNo': waybill_no,
+        'status': record['status'],
+        'currentLocation': record['dispatch']['hubName'] if record['dispatch'] else '始发地',
+        'history': record['history']
+    })
+
+
+@app.route('/logistics/schedule', methods=['POST'])
+def schedule_delivery():
+    """预约派送：IN_TRANSIT -> SCHEDULED"""
+    data = request.json or {}
+    waybill_no = data.get('waybillNo')
+    delivery_date = data.get('deliveryDate')
+    time_window = data.get('timeWindow')
+
+    if not all([waybill_no, delivery_date, time_window]):
+        return jsonify({'msg': '参数错误', 'msg_code': 9001, 'error_code': '9001', 'data': None})
+
+    registry = _get_logistics_registry()
+    record = registry.get(waybill_no)
+    if not record:
+        return jsonify({'msg': '运单不存在', 'msg_code': 4000, 'error_code': '4000', 'data': None})
+    if record['status'] != 'IN_TRANSIT':
+        return jsonify({'msg': '运单状态不允许预约派送', 'msg_code': 4000, 'error_code': '4000', 'data': None})
+
+    record['status'] = 'SCHEDULED'
+    record['schedule'] = {'deliveryDate': delivery_date, 'timeWindow': time_window}
+    _append_history(record, 'SCHEDULED')
+    _save_logistics_registry(registry)
+
+    return jsonify({
+        'msg': '预约派送成功',
+        'msg_code': 200,
+        'error_code': '0000',
+        'waybillNo': waybill_no,
+        'status': 'SCHEDULED',
+        'scheduleInfo': record['schedule']
+    })
+
+
+@app.route('/logistics/sign', methods=['POST'])
+def sign_waybill():
+    """确认签收：SCHEDULED -> DELIVERED"""
+    data = request.json or {}
+    waybill_no = data.get('waybillNo')
+    signer_name = data.get('signerName')
+    sign_time = data.get('signTime')
+
+    if not all([waybill_no, signer_name, sign_time]):
+        return jsonify({'msg': '参数错误', 'msg_code': 9001, 'error_code': '9001', 'data': None})
+
+    registry = _get_logistics_registry()
+    record = registry.get(waybill_no)
+    if not record:
+        return jsonify({'msg': '运单不存在', 'msg_code': 4000, 'error_code': '4000', 'data': None})
+    if record['status'] != 'SCHEDULED':
+        return jsonify({'msg': '运单状态不允许签收', 'msg_code': 4000, 'error_code': '4000', 'data': None})
+
+    record['status'] = 'DELIVERED'
+    record['sign'] = {'signerName': signer_name, 'signTime': sign_time}
+    _append_history(record, 'DELIVERED')
+    _save_logistics_registry(registry)
+
+    return jsonify({
+        'msg': '签收成功',
+        'msg_code': 200,
+        'error_code': '0000',
+        'waybillNo': waybill_no,
+        'status': 'DELIVERED',
+        'signInfo': record['sign']
+    })
+
+
+@app.route('/logistics/exception', methods=['POST'])
+def report_exception():
+    """异常上报：任意状态 -> EXCEPTION"""
+    data = request.json or {}
+    waybill_no = data.get('waybillNo')
+    exception_type = data.get('exceptionType')
+    description = data.get('description')
+
+    if not all([waybill_no, exception_type, description]):
+        return jsonify({'msg': '参数错误', 'msg_code': 9001, 'error_code': '9001', 'data': None})
+
+    registry = _get_logistics_registry()
+    record = registry.get(waybill_no)
+    if not record:
+        return jsonify({'msg': '运单不存在', 'msg_code': 4000, 'error_code': '4000', 'data': None})
+
+    record['status'] = 'EXCEPTION'
+    exception_id = _random_digits(18)
+    record['exception'] = {'exceptionId': exception_id, 'exceptionType': exception_type, 'description': description}
+    _append_history(record, 'EXCEPTION')
+    _save_logistics_registry(registry)
+
+    return jsonify({
+        'msg': '异常上报成功',
+        'msg_code': 200,
+        'error_code': '0000',
+        'waybillNo': waybill_no,
+        'status': 'EXCEPTION',
+        'exceptionId': exception_id,
+        'exceptionType': exception_type,
+        'description': description
+    })
+
+
+@app.route('/logistics/split', methods=['POST'])
+def split_waybill():
+    """拆单：CREATED 或 ASSIGNED -> SPLIT"""
+    data = request.json or {}
+    waybill_no = data.get('waybillNo')
+    split_items = data.get('splitItems')
+
+    if not all([waybill_no, split_items]) or not isinstance(split_items, list):
+        return jsonify({'msg': '参数错误', 'msg_code': 9001, 'error_code': '9001', 'data': None})
+
+    if len(split_items) < 2 or len(split_items) > 4:
+        return jsonify({'msg': '拆单数量必须在2-4之间', 'msg_code': 4000, 'error_code': '4000', 'data': None})
+
+    registry = _get_logistics_registry()
+    record = registry.get(waybill_no)
+    if not record:
+        return jsonify({'msg': '运单不存在', 'msg_code': 4000, 'error_code': '4000', 'data': None})
+    if record['status'] not in ('CREATED', 'ASSIGNED'):
+        return jsonify({'msg': '运单状态不允许拆单', 'msg_code': 4000, 'error_code': '4000', 'data': None})
+
+    sub_waybill_nos = []
+    for item in split_items:
+        sub_no = _random_digits(18)
+        sub_record = _new_logistics_record(
+            record['goodsId'], item.get('quantity', 1),
+            record['fromAddr'], item.get('toAddr', record['toAddr']),
+            record['consignee']
+        )
+        sub_record['status'] = 'CREATED'
+        sub_record['parentWaybillNo'] = waybill_no
+        registry[sub_no] = sub_record
+        sub_waybill_nos.append(sub_no)
+
+    record['status'] = 'SPLIT'
+    record['subWaybillNos'] = sub_waybill_nos
+    _append_history(record, 'SPLIT')
+    _save_logistics_registry(registry)
+
+    return jsonify({
+        'msg': '拆单成功',
+        'msg_code': 200,
+        'error_code': '0000',
+        'originalWaybillNo': waybill_no,
+        'subWaybillNos': sub_waybill_nos,
+        'status': 'SPLIT'
+    })
+
+
+@app.route('/logistics/return', methods=['POST'])
+def return_waybill():
+    """退货：DELIVERED -> RETURNED"""
+    data = request.json or {}
+    waybill_no = data.get('waybillNo')
+    reason = data.get('reason')
+    return_type = data.get('returnType')
+
+    if not all([waybill_no, reason, return_type]):
+        return jsonify({'msg': '参数错误', 'msg_code': 9001, 'error_code': '9001', 'data': None})
+
+    registry = _get_logistics_registry()
+    record = registry.get(waybill_no)
+    if not record:
+        return jsonify({'msg': '运单不存在', 'msg_code': 4000, 'error_code': '4000', 'data': None})
+    if record['status'] != 'DELIVERED':
+        return jsonify({'msg': '运单状态不允许退货', 'msg_code': 4000, 'error_code': '4000', 'data': None})
+
+    return_no = _random_digits(18)
+    record['status'] = 'RETURNED'
+    record['returnInfo'] = {'returnNo': return_no, 'reason': reason, 'returnType': return_type}
+    _append_history(record, 'RETURNED')
+    _save_logistics_registry(registry)
+
+    return jsonify({
+        'msg': '退货成功',
+        'msg_code': 200,
+        'error_code': '0000',
+        'waybillNo': waybill_no,
+        'status': 'RETURNED',
+        'returnNo': return_no,
+        'reason': reason,
+        'returnType': return_type
+    })
+
+
+@app.route('/logistics/cost', methods=['POST'])
+def calculate_cost():
+    """运费计算（只读）"""
+    data = request.json or {}
+    waybill_no = data.get('waybillNo')
+    weight = data.get('weight')
+    distance = data.get('distance')
+    service_type = data.get('serviceType')
+
+    if not all([waybill_no, weight is not None, distance is not None, service_type]):
+        return jsonify({'msg': '参数错误', 'msg_code': 9001, 'error_code': '9001', 'data': None})
+
+    registry = _get_logistics_registry()
+    if waybill_no not in registry:
+        return jsonify({'msg': '运单不存在', 'msg_code': 4000, 'error_code': '4000', 'data': None})
+
+    try:
+        weight = float(weight)
+        distance = float(distance)
+    except (ValueError, TypeError):
+        return jsonify({'msg': '重量或距离格式错误', 'msg_code': 9001, 'error_code': '9001', 'data': None})
+
+    base = 5.0
+    weight_fee = round(max(0, weight) * 2, 2)
+    distance_fee = round(max(0, distance) * 0.5, 2)
+    total = round(base + weight_fee + distance_fee, 2)
+
+    return jsonify({
+        'msg': '运费计算成功',
+        'msg_code': 200,
+        'error_code': '0000',
+        'waybillNo': waybill_no,
+        'cost': total,
+        'currency': 'CNY',
+        'breakdown': {
+            'base': base,
+            'weightFee': weight_fee,
+            'distanceFee': distance_fee
+        }
+    })
+
+
+@app.route('/logistics/carrier', methods=['GET'])
+def query_carrier():
+    """查询承运商信息"""
+    carrier_id = request.args.get('carrierId')
+    if not carrier_id:
+        return jsonify({'msg': '参数错误', 'msg_code': 9001, 'error_code': '9001', 'data': None})
+
+    info = CARRIER_MAP.get(carrier_id)
+    if not info:
+        return jsonify({'msg': '承运商不存在', 'msg_code': 4000, 'error_code': '4000', 'data': None})
+
+    return jsonify({
+        'msg': '查询成功',
+        'msg_code': 200,
+        'error_code': '0000',
+        **info
+    })
+
+
+# ═══════════════════════════════════════════════════
+# 5. 并发 benchmark 专用接口
+# ═══════════════════════════════════════════════════
+
+@app.route('/benchmark/slow_read', methods=['GET'])
+def benchmark_slow_read():
+    """
+    模拟真实接口延迟，用于并发 benchmark。
+
+    故意 sleep 50ms，让 pytest-xdist 的并行优势能够体现出来。
+    如果接口都是亚毫秒级本地响应，xdist 的进程启动开销反而会拖慢总时间。
+    """
+    time.sleep(0.05)
+    return jsonify({'msg': '慢查询返回', 'msg_code': 200, 'error_code': '0000'})
+
+
+# ═══════════════════════════════════════════════════
+# 6. 异常场景模拟（模块 12 使用）
 # ═══════════════════════════════════════════════════
 
 @app.route('/test/error-500', methods=['GET'])
@@ -515,9 +1044,12 @@ def empty_response():
 # ═══════════════════════════════════════════════════
 
 if __name__ == '__main__':
-    print('Mock Server 启动中...')
+    print('Mock Server 启动中...（threaded=True 支持并发请求）')
+    print(f'配置来源: conf/config.ini  [mock_server] debug={MOCK_SERVER_DEBUG}')
     print('用户管理接口: /dar/user/login | addUser | queryUser | deleteUser | updateUser')
     print('电商接口:     /coupApply/cms/goodsList | productDetail | shoppingInventory | placeAnOrder | orderPay | checkOrderStatus')
+    print('物流接口:     /logistics/create | assign | pickup | dispatch | track | schedule | sign | exception | split | return | cost | carrier')
+    print('Benchmark:    /benchmark/slow_read')
     print('异常测试:     /test/error-500 | /test/timeout | /test/empty')
     print()
-    app.run(host='127.0.0.1', port=8787, debug=True)
+    app.run(host=MOCK_SERVER_HOST, port=MOCK_SERVER_PORT, debug=MOCK_SERVER_DEBUG, threaded=True)

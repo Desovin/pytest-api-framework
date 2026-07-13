@@ -1,0 +1,68 @@
+- baseInfo:
+    api_name: 拆单-创建运单
+    url: /logistics/create
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 拆单流程-创建运单
+      json:
+        goodsId: '74190550836'
+        quantity: 3
+        fromAddr: 深圳
+        toAddr: 北京
+        consignee: 张三
+      validation:
+        - contains: { msg_code: 200 }
+      extract:
+        waybillNo: $.waybillNo
+
+- baseInfo:
+    api_name: 拆单-拆单
+    url: /logistics/split
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 拆单流程-拆单
+      json:
+        waybillNo: ${get_extract_data(waybillNo)}
+        splitItems:
+          - quantity: 1
+            toAddr: 北京
+          - quantity: 2
+            toAddr: 上海
+      validation:
+        - contains: { msg_code: 200 }
+      extract:
+        subWaybillNos: $.subWaybillNos[*]
+
+- baseInfo:
+    api_name: 拆单-子单1分配
+    url: /logistics/assign
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 拆单流程-子单1分配
+      json:
+        waybillNo: ${get_extract_data(subWaybillNos,0)}
+        carrierId: C001
+        carrierName: 顺丰速运
+      validation:
+        - contains: { msg_code: 200 }
+
+- baseInfo:
+    api_name: 拆单-子单2分配
+    url: /logistics/assign
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 拆单流程-子单2分配
+      json:
+        waybillNo: ${get_extract_data(subWaybillNos,1)}
+        carrierId: C002
+        carrierName: 中通快递
+      validation:
+        - contains: { msg_code: 200 }

@@ -1,0 +1,69 @@
+- baseInfo:
+    api_name: 创建运单
+    url: /logistics/create
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: 正常创建运单
+      json:
+        goodsId: '18382788819'
+        quantity: 2
+        fromAddr: 深圳市南山区
+        toAddr: 北京市海淀区
+        consignee: 张三
+      validation:
+        - contains: { msg_code: 200 }
+        - contains: { error_code: '0000' }
+        - contains: { msg: 运单创建成功 }
+      extract:
+        waybillNo: $.waybillNo
+
+    - case_name: 缺少goodsId
+      json:
+        quantity: 2
+        fromAddr: 深圳
+        toAddr: 北京
+        consignee: 张三
+      validation:
+        - contains: { msg_code: 9001 }
+
+    - case_name: 缺少收货地址
+      json:
+        goodsId: '18382788819'
+        quantity: 2
+        fromAddr: 深圳
+        consignee: 张三
+      validation:
+        - contains: { msg_code: 9001 }
+
+    - case_name: quantity为0
+      json:
+        goodsId: '18382788819'
+        quantity: 0
+        fromAddr: 深圳
+        toAddr: 北京
+        consignee: 张三
+      validation:
+        - contains: { msg_code: 9001 }
+
+    - case_name: 收货人超长
+      json:
+        goodsId: '18382788819'
+        quantity: 1
+        fromAddr: 深圳
+        toAddr: 北京
+        consignee: 张三张三张三张三张三张三张三张三张三张三张三张三张三张三张三张三张三张三张三张三张三张三张三张三张三张三张三张三张三张三张三张三张三张三张三张三张三张三
+      validation:
+        - contains: { msg_code: 200 }
+        - contains: { error_code: '0000' }
+
+    - case_name: 特殊字符地址
+      json:
+        goodsId: '18382788819'
+        quantity: 1
+        fromAddr: 深圳<script>
+        toAddr: 北京"test"
+        consignee: 李四
+      validation:
+        - contains: { msg_code: 200 }

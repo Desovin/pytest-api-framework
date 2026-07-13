@@ -1,0 +1,43 @@
+- baseInfo:
+    api_name: 退货
+    url: /logistics/return
+    method: POST
+    header:
+      Content-Type: application/json;charset=UTF-8
+  testCase:
+    - case_name: waybillNo不存在
+      json:
+        waybillNo: '999999999999999999'
+        reason: 不要了
+        returnType: RETURN
+      validation:
+        - contains: { msg_code: 4000 }
+
+    - case_name: 缺少退货原因
+      json:
+        waybillNo: '999999999999999999'
+        returnType: RETURN
+      validation:
+        - contains: { msg_code: 9001 }
+
+    - case_name: 缺少returnType
+      json:
+        waybillNo: '999999999999999999'
+        reason: 不想要
+      validation:
+        - contains: { msg_code: 9001 }
+
+    - case_name: 缺少waybillNo
+      json:
+        reason: 不想要
+        returnType: RETURN
+      validation:
+        - contains: { msg_code: 9001 }
+
+    - case_name: returnType为空
+      json:
+        waybillNo: '999999999999999999'
+        reason: 不想要
+        returnType: ''
+      validation:
+        - contains: { msg_code: 9001 }
