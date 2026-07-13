@@ -87,7 +87,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # 5. 安装 Allure CLI（Ubuntu 下没有 scoop，手动下载）
+      # 5. 安装 Allure CLI（Ubuntu 下没有 scoop, 手动下载）
       - name: Install Allure CLI
         run: |
           ALLURE_VERSION=2.29.0
