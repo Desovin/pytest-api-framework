@@ -28,9 +28,6 @@ jobs:
   test:
     name: Run API Tests
     runs-on: ubuntu-latest
-    env:
-      # 将 secrets 映射为 env 变量，因为 service container 的 options 字段不支持 secrets 上下文
-      MYSQL_CI_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
 
     services:
       # CI 中启动 Redis 服务（模块 10/13 用到）
@@ -48,13 +45,14 @@ jobs:
       mysql:
         image: mysql:8.0
         env:
-          # 密码从 GitHub Secrets 读取，不硬编码在 workflow 文件中
-          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          # CI 专用固定密码（容器仅存活于 Actions 运行期间，销毁后不可访问）
+          # 注意：options 字段不支持 secrets/env 上下文，所以健康检查只能用固定值
+          MYSQL_ROOT_PASSWORD: ci_test_pwd
           MYSQL_DATABASE: test_framework
         ports:
           - 3306:3306
         options: >-
-          --health-cmd "mysqladmin ping -h 127.0.0.1 -uroot -p${{ env.MYSQL_CI_PASSWORD }}"
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -uroot -pci_test_pwd"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -115,8 +113,8 @@ jobs:
       #    所以这里只需要注入 DINGTALK_* 环境变量。
       - name: Run pytest
         env:
-          # 敏感配置通过 GitHub Secrets 注入（.env 文件不会提交到仓库）
-          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          # CI MySQL 密码与 service container 的 MYSQL_ROOT_PASSWORD 保持一致
+          MYSQL_PASSWORD: ci_test_pwd
           LOGIN_PASSWORD: ${{ secrets.LOGIN_PASSWORD }}
           # CI 环境下用 GitHub Secrets 覆盖 config.ini 的钉钉配置
           DINGTALK_ENABLED: 'true'
