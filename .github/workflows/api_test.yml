@@ -28,6 +28,9 @@ jobs:
   test:
     name: Run API Tests
     runs-on: ubuntu-latest
+    env:
+      # 将 secrets 映射为 env 变量，因为 service container 的 options 字段不支持 secrets 上下文
+      MYSQL_CI_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
 
     services:
       # CI 中启动 Redis 服务（模块 10/13 用到）
@@ -51,7 +54,7 @@ jobs:
         ports:
           - 3306:3306
         options: >-
-          --health-cmd "mysqladmin ping -h 127.0.0.1 -uroot -p${{ secrets.MYSQL_PASSWORD }}"
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -uroot -p${{ env.MYSQL_CI_PASSWORD }}"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
