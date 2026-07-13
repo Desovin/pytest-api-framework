@@ -115,7 +115,8 @@ jobs:
         env:
           # CI MySQL 密码与 service container 的 MYSQL_ROOT_PASSWORD 保持一致
           MYSQL_PASSWORD: ci_test_pwd
-          LOGIN_PASSWORD: ${{ secrets.LOGIN_PASSWORD }}
+          # Mock Server 测试账号密码（硬编码在 mock_server/app.py 的 VALID_USERS 中）
+          LOGIN_PASSWORD: admin123
           # CI 环境下用 GitHub Secrets 覆盖 config.ini 的钉钉配置
           DINGTALK_ENABLED: 'true'
           DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
